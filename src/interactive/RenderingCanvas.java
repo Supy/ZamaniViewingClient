@@ -1,18 +1,45 @@
 package interactive;
 
+import hierarchy.*;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import utils.ByteSize;
+import utils.ShaderControl;
+import utils.ShaderType;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import java.nio.IntBuffer;
+import java.util.LinkedList;
 
 public class RenderingCanvas implements GLEventListener {
+
+    private Hierarchy hierarchy;
+    private HierarchyRenderer hierarchyRenderer;
+
+    private IntBuffer buffers;
+    private boolean[] bufferBound;
+
+    private ShaderControl shaderControl;
+
+    public RenderingCanvas(Hierarchy hierarchy) {
+        if (hierarchy == null) {
+            throw new IllegalArgumentException("Must be supplied with non-null hierarchy.");
+        }
+
+        this.hierarchy = hierarchy;
+        this.hierarchyRenderer = new HierarchyRenderer(hierarchy);
+
+        this.buffers = IntBuffer.allocate(this.hierarchy.getNumNodes() * 2);
+        bufferBound = new boolean[hierarchy.getNumNodes()];
+    }
 
     @Override
     public void init(GLAutoDrawable glAutoDrawable) {
         GL2 gl = (GL2) glAutoDrawable.getGL();
         setupCamera();
 
+        gl.glShadeModel(GL2.GL_SMOOTH);
         gl.glClearColor(0.51f, 0.72f, 0.95f, 1f);
         gl.glEnable(GL2.GL_DEPTH_TEST);                                 // Enable depth testing.
         gl.glDepthFunc(GL2.GL_LEQUAL);                                  // The type of depth test.
@@ -22,6 +49,15 @@ public class RenderingCanvas implements GLEventListener {
         gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
         gl.glEnable(GL2.GL_CULL_FACE);
         gl.glFrontFace(GL2.GL_CCW);
+
+        gl.glGenBuffers(this.buffers.capacity(), this.buffers);
+
+        setupLighting(gl);
+        try {
+            loadShaders(gl);
+        } catch (Exception e) {
+            System.err.println("Failed to load shaders.");
+        }
     }
 
     @Override
@@ -38,40 +74,40 @@ public class RenderingCanvas implements GLEventListener {
         InputReader.processInput();
         Camera.update(gl);
 
+        this.hierarchy.updateNodeVisibility();
+
+        DataLoader.loadAllNodeData(new LinkedList<>(this.hierarchy.getActiveNodes()));
+
         drawAxes(gl);
 
-        gl.glBegin(GL2.GL_QUADS);		// Draw The Cube Using quads
-        gl.glColor3f(0.0f,1.0f,0.0f);	// Color Blue
-        gl.glVertex3f( 1.0f, 1.0f,-1.0f);	// Top Right Of The Quad (Top)
-        gl.glVertex3f(-1.0f, 1.0f,-1.0f);	// Top Left Of The Quad (Top)
-        gl.glVertex3f(-1.0f, 1.0f, 1.0f);	// Bottom Left Of The Quad (Top)
-        gl.glVertex3f( 1.0f, 1.0f, 1.0f);	// Bottom Right Of The Quad (Top)
-        gl.glColor3f(1.0f,0.5f,0.0f);	// Color Orange
-        gl.glVertex3f( 1.0f,-1.0f, 1.0f);	// Top Right Of The Quad (Bottom)
-        gl.glVertex3f(-1.0f,-1.0f, 1.0f);	// Top Left Of The Quad (Bottom)
-        gl.glVertex3f(-1.0f,-1.0f,-1.0f);	// Bottom Left Of The Quad (Bottom)
-        gl.glVertex3f( 1.0f,-1.0f,-1.0f);	// Bottom Right Of The Quad (Bottom)
-        gl.glColor3f(1.0f,0.0f,0.0f);	// Color Red
-        gl.glVertex3f( 1.0f, 1.0f, 1.0f);	// Top Right Of The Quad (Front)
-        gl.glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Left Of The Quad (Front)
-        gl.glVertex3f(-1.0f,-1.0f, 1.0f);	// Bottom Left Of The Quad (Front)
-        gl.glVertex3f( 1.0f,-1.0f, 1.0f);	// Bottom Right Of The Quad (Front)
-        gl.glColor3f(1.0f,1.0f,0.0f);	// Color Yellow
-        gl.glVertex3f( 1.0f,-1.0f,-1.0f);	// Top Right Of The Quad (Back)
-        gl.glVertex3f(-1.0f,-1.0f,-1.0f);	// Top Left Of The Quad (Back)
-        gl.glVertex3f(-1.0f, 1.0f,-1.0f);	// Bottom Left Of The Quad (Back)
-        gl.glVertex3f( 1.0f, 1.0f,-1.0f);	// Bottom Right Of The Quad (Back)
-        gl.glColor3f(0.0f,0.0f,1.0f);	// Color Blue
-        gl.glVertex3f(-1.0f, 1.0f, 1.0f);	// Top Right Of The Quad (Left)
-        gl.glVertex3f(-1.0f, 1.0f,-1.0f);	// Top Left Of The Quad (Left)
-        gl.glVertex3f(-1.0f,-1.0f,-1.0f);	// Bottom Left Of The Quad (Left)
-        gl.glVertex3f(-1.0f,-1.0f, 1.0f);	// Bottom Right Of The Quad (Left)
-        gl.glColor3f(1.0f,0.0f,1.0f);	// Color Violet
-        gl.glVertex3f( 1.0f, 1.0f,-1.0f);	// Top Right Of The Quad (Right)
-        gl.glVertex3f( 1.0f, 1.0f, 1.0f);	// Top Left Of The Quad (Right)
-        gl.glVertex3f( 1.0f,-1.0f, 1.0f);	// Bottom Left Of The Quad (Right)
-        gl.glVertex3f( 1.0f,-1.0f,-1.0f);	// Bottom Right Of The Quad (Right)
-        gl.glEnd();			// End Drawing The Cubepackage interactive;
+        this.hierarchyRenderer.draw(glAutoDrawable);
+
+        gl.glEnable(GL2.GL_LIGHTING);
+        shaderControl.useShader();
+        for (Node node : this.hierarchy.getVisibleNodes()) {
+            NodeDataBlock dataBlock = DataLoader.getNodeData(node);
+            if (dataBlock != null) {
+                if (!bufferBound[node.getId()]) {
+                    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
+                    gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity() * ByteSize.FLOAT, dataBlock.getVertexDataBuffer(), GL2.GL_STATIC_DRAW);
+                    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
+
+                    gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
+                    gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, dataBlock.getIndexBuffer().capacity() * ByteSize.INT, dataBlock.getIndexBuffer(), GL2.GL_STATIC_DRAW);
+                    gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
+
+                    bufferBound[node.getId()] = true;
+                }
+
+                gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
+                gl.glVertexPointer(3, GL2.GL_FLOAT, 24, 0);
+                gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
+                gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
+                gl.glDrawElements(GL2.GL_TRIANGLES, dataBlock.getNumIndices(), GL2.GL_UNSIGNED_INT, 0);
+            }
+        }
+        shaderControl.dontUseShader();
+        gl.glDisable(GL2.GL_LIGHTING);
     }
 
     @Override
@@ -103,9 +139,44 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setupCamera() {
-        Camera.setPosition(new Vector3D(10, 10, 10));
+        Camera.setPosition(new Vector3D(1500, 1500, 1500));
         Camera.setLookAt(new Vector3D(0, 0, 0));
-        Camera.setClipping(1, 2000);
+        Camera.setClipping(10, 10000);
         Camera.setFOV(45);
+    }
+
+    private void setupLighting(GL2 gl) {
+        gl.glEnable(GL2.GL_LIGHTING);
+        gl.glEnable(GL2.GL_COLOR_MATERIAL);
+
+        float[] worldAmbience = {0.7f, 0.7f, 0.7f, 1f};
+        gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, worldAmbience, 0);
+
+        float[] lightPosition = {10000, 10000, 10000, 1};
+        float[] diffuseColor = {1.0f, 1.0f, 1.0f, 1.0f};
+        float[] specularColor = {1.0f, 1.0f, 1.0f, 1.0f};
+
+        gl.glEnable(GL2.GL_LIGHT0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
+
+        float[] materialAmbientColor = {0.2f, 0.2f, 0.2f, 1.0f};
+        float[] materialDiffuseColor = {0.83f, 0.75f, 0.61f, 1.0f};
+        float[] materialSpecularColor = {0.15f, 0.15f, 0.15f, 1.0f};
+        float materialShininess = 80.0f;
+
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT, materialAmbientColor, 0);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, materialDiffuseColor, 0);
+        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, materialSpecularColor, 0);
+        gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, materialShininess);
+    }
+
+    private void loadShaders(GL2 gl) throws Exception {
+        shaderControl = new ShaderControl(gl);
+        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\flat_vertex_shader.glsl", ShaderType.VERTEX_FLAT);
+        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\fragment_shader.glsl", ShaderType.FRAGMENT);
+        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\vertex_shader.glsl", ShaderType.VERTEX);
+        shaderControl.attachShaders();
     }
 }

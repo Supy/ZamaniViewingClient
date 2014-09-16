@@ -1,10 +1,8 @@
 package ply;
 
-import java.nio.MappedByteBuffer;
+import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,8 +14,6 @@ import java.util.regex.Pattern;
  */
 class PLYHeader {
 
-    private static final Logger log = Logger.getLogger(PLYHeader.class.getName());
-
     private final String headerContent;
 
     private int vertexCount = -1;
@@ -26,8 +22,7 @@ class PLYHeader {
 
     private static final Pattern endHeaderPattern = Pattern.compile("[\\s\\S]*?end_header.*?\n", Pattern.MULTILINE | Pattern.UNIX_LINES);
 
-    public PLYHeader(final MappedByteBuffer buffer) throws InvalidFileException {
-        log.log(Level.FINE, "processing PLY header information");
+    public PLYHeader(final ByteBuffer buffer) throws InvalidFileException {
 
         byte[] tmp = new byte[1024];
         buffer.get(tmp);
@@ -35,11 +30,7 @@ class PLYHeader {
         this.headerContent = isolateHeader(new String(tmp));
         this.dataOffset = this.headerContent.length();
 
-        log.log(Level.FINER, "header isolated. data offset is {0}", this.dataOffset);
-
         parse();
-
-        log.log(Level.FINE, "extracted header counts - vertices: {0}, faces: {1}", new Object[]{this.vertexCount, this.faceCount});
     }
 
     // Thanks for this, Ben
@@ -62,8 +53,6 @@ class PLYHeader {
             do {
                 line = tokenizedHeader.nextToken().trim();
                 String[] parts = line.split(" ");
-
-                log.log(Level.FINEST, "found header line {0}", line);
 
                 if (parts.length == 3 && parts[0].equals("element")) {
                     if (parts[1].equals("vertex")) {

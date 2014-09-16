@@ -18,6 +18,11 @@ public class Stopwatch {
         }
     }
 
+    public static long getTime(String key) {
+        stop(key);
+        return durations.get(key);
+    }
+
     public static void stopAndPrint(String key) {
         stop(key);
         System.out.println("[" + key + "] took " + durations.get(key) + "ms.");

@@ -1,7 +1,9 @@
 package interactive;
 
-import bvh.BVHBuilder;
-import bvh.Hierarchy;
+import hierarchy.BVHBuilder;
+import hierarchy.BVHFileReader;
+import hierarchy.DataLoader;
+import hierarchy.Hierarchy;
 import com.jogamp.opengl.util.FPSAnimator;
 
 import javax.media.opengl.awt.GLCanvas;
@@ -10,6 +12,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.INFO;
 
 public class ViewingClient {
 
@@ -17,20 +25,27 @@ public class ViewingClient {
     private static Frame frame;
 
     public static void main(String[] args) {
+        setupLogging();
+
         if (args.length != 1) {
             System.out.println("Please supply the path to the hierarchy information file.");
             exit();
         }
 
+        BVHFileReader fileReader = null;
+        Hierarchy hierarchy = null;
+
         try {
-            Hierarchy hierarchy = BVHBuilder.fromFile("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\example-hierarchy.json");
+            fileReader = new BVHFileReader(args[0]);
+            hierarchy = BVHBuilder.fromString(fileReader.readHierarchyHeader());
+            DataLoader.setFileReader(fileReader);
         } catch (IOException e) {
             System.err.println("Failed to parse BVH file");
             exit();
         }
 
         InputReader inputReader = new InputReader();
-        RenderingCanvas renderingCanvas = new RenderingCanvas();
+        RenderingCanvas renderingCanvas = new RenderingCanvas(hierarchy);
 
         GLCanvas canvas = new GLCanvas();
         canvas.addGLEventListener(renderingCanvas);
@@ -76,5 +91,16 @@ public class ViewingClient {
         Point hotSpot = new Point(0, 0);
         BufferedImage cursorImage = new BufferedImage(1, 1, BufferedImage.TRANSLUCENT);
         return toolkit.createCustomCursor(cursorImage, hotSpot, "InvisibleCursor");
+    }
+
+    private static void setupLogging() {
+        // Set all logging.
+        Logger root = Logger.getLogger("");
+        root.setLevel(Level.INFO);
+        for (Handler handler : root.getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                handler.setLevel(Level.INFO);
+            }
+        }
     }
 }

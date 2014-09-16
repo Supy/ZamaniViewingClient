@@ -3,6 +3,7 @@ package interactive;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.glu.GLU;
 
@@ -41,17 +42,20 @@ public class Camera {
 
     private static Vector3D cameraUp;
 
-    private static GLU glu;
+    private final static GLU glu = new GLU();
+
+    private final static double[] projectionMatrix = new double[16];
+    private final static double[] modelViewMatrix = new double[16];
+    private final static int[] viewportBoundaries = new int[4];
 
     // Setup defaults
     static {
         cameraUp = new Vector3D(0, 1, 0);
         fieldOfView = 45;
         cameraPositionDelta = new Vector3D(0, 0, 0);
-        cameraScale = 0.8f;
+        cameraScale = 8f;
         maxPitchRate = 5;
         maxHeadingRate = 5;
-        glu = new GLU();
     }
 
     public static void update(GL2 gl) {
@@ -99,11 +103,15 @@ public class Camera {
             cameraUp.getY(),
             cameraUp.getZ()
         );
+
+        gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelViewMatrix, 0);
     }
 
     public static void setPosition(Vector3D pos) {
         cameraPosition = pos;
     }
+
+    public static Vector3D getPosition() { return cameraPosition; }
 
     public static void setLookAt(Vector3D pos) {
         cameraLookAt = pos;
@@ -199,5 +207,40 @@ public class Camera {
         gl.glLoadIdentity();
         gl.glViewport(viewportX, viewportY, windowWidth, windowHeight);
         glu.gluPerspective(fieldOfView, aspect, nearClip, farClip);
+
+        gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projectionMatrix, 0);
+        gl.glGetIntegerv(GL.GL_VIEWPORT, viewportBoundaries, 0);
+    }
+
+    public static double[] getProjectionMatrix() {
+        return projectionMatrix;
+    }
+
+    public static double[] getModelViewMatrix() {
+        return modelViewMatrix;
+    }
+
+    public static int[] getViewportBoundaries() {
+        return viewportBoundaries;
+    }
+
+    public static double getProjectedScreenSize(Vector3D[] corners) {
+        double  minX = Double.MAX_VALUE, maxX = 0,
+                minY = Double.MAX_VALUE, maxY = 0;
+
+        for(Vector3D corner : corners) {
+            double[] screenCoordinates = new double[4];
+            boolean success = glu.gluProject(corner.getX(), corner.getY(), corner.getZ(), modelViewMatrix, 0, projectionMatrix, 0, viewportBoundaries, 0, screenCoordinates, 0);
+
+            // Don't count corners which fail the projection
+            if (success) {
+                minX = Math.min(minX, screenCoordinates[0]);
+                maxX = Math.max(maxX, screenCoordinates[0]);
+                minY = Math.min(minY, screenCoordinates[1]);
+                maxY = Math.max(maxY, screenCoordinates[1]);
+            }
+        }
+
+        return Math.abs((maxX - minX)) * Math.abs((maxY - minY)) / (windowWidth * windowHeight) * 100;
     }
 }
