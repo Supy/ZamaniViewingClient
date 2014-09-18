@@ -1,5 +1,8 @@
 package interactive;
 
+import utils.ShaderControl;
+
+import javax.media.opengl.GL2;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
@@ -54,7 +57,17 @@ public class InputReader implements KeyListener, MouseMotionListener {
 
     @Override
     public void keyTyped(final KeyEvent e) {
+        if (e.getKeyChar() == 'v') {
+            ShaderControl.toggleFlatShader();
+        }
 
+        if (e.getKeyChar() == 'f') {
+            RenderingCanvas.toggleFillMode();
+        }
+
+        if (e.getKeyChar() == 'p') {
+            RenderingCanvas.togglePolygonMode();
+        }
     }
 
     @Override

@@ -1,10 +1,11 @@
 package interactive;
 
+import com.jogamp.opengl.util.Animator;
 import hierarchy.BVHBuilder;
 import hierarchy.BVHFileReader;
-import hierarchy.DataLoader;
+import data.DataStore;
 import hierarchy.Hierarchy;
-import com.jogamp.opengl.util.FPSAnimator;
+import utils.Stopwatch;
 
 import javax.media.opengl.awt.GLCanvas;
 import java.awt.*;
@@ -17,12 +18,12 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.INFO;
-
 public class ViewingClient {
 
-    private static FPSAnimator animator;
+    private static Animator animator;
     private static Frame frame;
+
+    public static long total;
 
     public static void main(String[] args) {
         setupLogging();
@@ -38,7 +39,7 @@ public class ViewingClient {
         try {
             fileReader = new BVHFileReader(args[0]);
             hierarchy = BVHBuilder.fromString(fileReader.readHierarchyHeader());
-            DataLoader.setFileReader(fileReader);
+            DataStore.setFileReader(fileReader);
         } catch (IOException e) {
             System.err.println("Failed to parse BVH file");
             exit();
@@ -54,7 +55,8 @@ public class ViewingClient {
 
         frame = new Frame("Zamani Renderer");
         frame.add(canvas);
-        frame.setSize(1200, 880);
+//        frame.setSize(1200, 900);
+        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         frame.setUndecorated(false);
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
@@ -66,9 +68,9 @@ public class ViewingClient {
         frame.setCursor(invisibleCursor());
 
         // Repeatedly calls the canvas's display() method.
-        animator = new FPSAnimator(canvas, 60);
+        animator = new Animator(canvas);
         animator.start();
-        animator.setUpdateFPSFrames(100, System.out);
+        animator.setUpdateFPSFrames(60, System.out);
     }
 
     public static void exit() {
@@ -80,6 +82,9 @@ public class ViewingClient {
             frame.dispose();
         }
 
+        Stopwatch.printTime("total time loading node data");
+        Stopwatch.printTime("total time calculating normals");
+        Stopwatch.printTime("total time binding buffer data");
         System.exit(0);
     }
 

@@ -34,13 +34,12 @@ public class HierarchyRenderer {
         HashSet<Node> visibleNodes = hierarchy.getVisibleNodes();
         HashSet<Node> activeNodes = hierarchy.getActiveNodes();
 
-        textRenderer.beginRendering(glAutoDrawable.getWidth(), glAutoDrawable.getHeight());
-        textRenderer.draw(visibleNodes.size() + " visible nodes", 40, 40);
-        textRenderer.draw(activeNodes.size() + " active nodes", 40, 20);
-        textRenderer.draw("Hierarchy update: " + Stopwatch.getTime("hierarchyRenderer.update") + " ms", 40, 60);
-        textRenderer.endRendering();
+//        textRenderer.beginRendering(glAutoDrawable.getWidth(), glAutoDrawable.getHeight());
+//        textRenderer.draw(visibleNodes.size() + " visible nodes", 40, 40);
+//        textRenderer.draw(activeNodes.size() + " active nodes", 40, 20);
+//        textRenderer.endRendering();
 
-        gl.glColor4f(1, 1, 0, 0.5f);
+        gl.glColor3f(1,1,0);
         gl.glLineWidth(3);
         gl.glBegin(GL2.GL_LINES);
 
@@ -89,5 +88,6 @@ public class HierarchyRenderer {
         }
 
         gl.glEnd();
+        gl.glLineWidth(1);
     }
 }

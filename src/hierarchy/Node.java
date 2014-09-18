@@ -18,16 +18,10 @@ public class Node implements Comparable<Node> {
     private Node parent = null;
     private int parentId;
     private List<Node> children = new ArrayList<>();
+    private List<Node> siblings = null;
     private boolean leafNode = true;
 
-    // Geometry information
-    private int numVertices;
-    private int numFaces;
-
     private List<Vector3D> corners = new ArrayList<>(8);
-
-
-    private Vector3D center;
 
     public int getId() {
         return id;
@@ -59,6 +53,7 @@ public class Node implements Comparable<Node> {
 
     public void setParent(Node parent) {
         this.parent = parent;
+        this.siblings = parent.getChildren();
     }
 
     public int getParentId() {
@@ -80,20 +75,8 @@ public class Node implements Comparable<Node> {
         }
     }
 
-    public int getNumVertices() {
-        return numVertices;
-    }
-
-    public void setNumVertices(int numVertices) {
-        this.numVertices = numVertices;
-    }
-
-    public int getNumFaces() {
-        return numFaces;
-    }
-
-    public void setNumFaces(int numFaces) {
-        this.numFaces = numFaces;
+    public List<Node> getSiblings() {
+        return siblings;
     }
 
     public void addCorner(Vector3D corner) {
@@ -104,20 +87,8 @@ public class Node implements Comparable<Node> {
         return this.corners;
     }
 
-    public Vector3D getCenter() {
-        return center;
-    }
-
-    public void setCenter(Vector3D center) {
-        this.center = center;
-    }
-
     public boolean isLeafNode() {
         return this.leafNode;
-    }
-
-    public void calculateCenter(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        this.setCenter(new Vector3D((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2));
     }
 
     public static Node fromJSON(JSONObject jo) throws JSONException {
@@ -138,8 +109,6 @@ public class Node implements Comparable<Node> {
         node.setParentId(jo.optInt("parent_id", -1));
         node.setDataBlockOffset(jo.getInt("block_offset"));
         node.setDataBlockLength(jo.getInt("block_length"));
-        node.setNumFaces(jo.getInt("num_faces"));
-        node.setNumVertices(jo.getInt("num_vertices"));
 
         // Corners
         node.addCorner(new Vector3D(minX, minY, minZ));
@@ -150,8 +119,6 @@ public class Node implements Comparable<Node> {
         node.addCorner(new Vector3D(minX, maxY, maxZ));
         node.addCorner(new Vector3D(maxX, maxY, maxZ));
         node.addCorner(new Vector3D(maxX, minY, maxZ));
-
-        node.calculateCenter(minX, minY, minZ, maxX, maxY, maxZ);
 
         return node;
     }

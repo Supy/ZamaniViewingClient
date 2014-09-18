@@ -39,15 +39,13 @@ public class BVHFileReader {
     }
 
     private int getHeaderLength() throws IOException {
-//        this.buffer.position(0);
-//        int headerLength = this.buffer.getInt();
-//
-//        if (headerLength <= 0) {
-//            throw new RuntimeException("Invalid header length");
-//        }
-//
-//        return headerLength;
+        this.buffer.position(0);
+        int headerLength = this.buffer.getInt();
 
-        return 20910;
+        if (headerLength <= 0) {
+            throw new RuntimeException("Invalid header length");
+        }
+
+        return headerLength;
     }
 }

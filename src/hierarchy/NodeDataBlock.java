@@ -6,10 +6,10 @@ import java.nio.IntBuffer;
 public class NodeDataBlock {
 
     private final Node node;
-    private final FloatBuffer vertexDataBuffer;
+    private FloatBuffer vertexDataBuffer;
     private final IntBuffer indexBuffer;
 
-    private final int numVertices;
+    private int numVertices;
     private final int numIndices;
 
     public NodeDataBlock(final Node node, final FloatBuffer vertexDataBuffer, final IntBuffer indexBuffer) {
@@ -17,12 +17,17 @@ public class NodeDataBlock {
         this.vertexDataBuffer = vertexDataBuffer;
         this.indexBuffer = indexBuffer;
 
-        this.numVertices = vertexDataBuffer.capacity() / 2 / 3; // Has normal + vertex data, each of 3 floats;
+        this.numVertices = vertexDataBuffer.capacity(); // NodeDataBlock is given the vertex buffer that has not been merged with the vertices yet.
         this.numIndices = indexBuffer.capacity();
     }
 
     public final Node getNode() {
         return this.node;
+    }
+
+    public void setVertexDataBuffer(FloatBuffer vertexDataBuffer) {
+        this.vertexDataBuffer = vertexDataBuffer;
+        this.numVertices = vertexDataBuffer.capacity();
     }
 
     public final FloatBuffer getVertexDataBuffer() {

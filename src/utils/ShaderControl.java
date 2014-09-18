@@ -19,7 +19,7 @@ public class ShaderControl {
     private String[] vertexShaderFlatSrc = null;
     private String[] vertexShaderSrc = null;
     private String[] fragmentShaderSrc = null;
-    private boolean useFlatShader = false;
+    private static boolean useFlatShader = false;
 
     private GL2 gl;
 
@@ -117,14 +117,14 @@ public class ShaderControl {
     }
 
     public void useShader() {
-        gl.glUseProgram((this.useFlatShader) ? flatShaderProgram : smoothShaderProgram);
+        gl.glUseProgram((!this.useFlatShader && canUseSmoothShader()) ? smoothShaderProgram : flatShaderProgram );
     }
 
     public void dontUseShader() {
         gl.glUseProgram(0);
     }
 
-    public void toggleFlatShader() {
-        this.useFlatShader = (canUseSmoothShader()) ? !this.useFlatShader : true;
+    public static void toggleFlatShader() {
+        useFlatShader = !useFlatShader;
     }
 }

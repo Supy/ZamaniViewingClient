@@ -1,0 +1,67 @@
+package data;
+
+import hierarchy.BVHFileReader;
+import hierarchy.Node;
+import hierarchy.NodeDataBlock;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class DataStore {
+
+    protected static BVHFileReader fileReader;
+    protected static int baseDataOffset;
+    protected static final ConcurrentHashMap<Node, NodeDataBlock> nodeData = new ConcurrentHashMap<>();
+
+    protected static final BlockingQueue<Node> loadQueue = new LinkedBlockingQueue<>();
+    protected static final BlockingQueue<NodeDataBlock> processingQueue = new LinkedBlockingQueue<>();
+
+    protected static final HashSet<Node> nodesInTransit = new HashSet<>();
+
+
+    static {
+        new Thread(new BackgroundDataLoader()).start();
+        new Thread(new BackgroundNormalProcessor()).start();
+    }
+
+    public static synchronized boolean isNodeInTransit(Node node) {
+        return nodesInTransit.contains(node);
+    }
+
+    public static synchronized void markNodeInTransit(Node node) {
+        nodesInTransit.add(node);
+    }
+    public static synchronized void markNodeNotInTransit(Node node) {
+        nodesInTransit.remove(node);
+    }
+
+    public static boolean hasAllNodes(List<Node> nodeList) {
+        return nodeData.keySet().containsAll(nodeList);
+    }
+
+    public static void loadAllNodeData(List<Node> nodeList) {
+        //Stopwatch.start("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
+        // Sort list to make more sequential reading.
+        for (Node node : nodeList) {
+            if (!nodeData.containsKey(node) && !isNodeInTransit(node)) {
+                markNodeInTransit(node);
+                loadQueue.offer(node);
+            }
+        }
+        //Stopwatch.stopAndPrintGtZero("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
+    }
+
+    public static final NodeDataBlock getNodeData(Node node) {
+        return nodeData.get(node);
+    }
+
+    public static void setFileReader(BVHFileReader fr) throws IOException {
+        fileReader = fr;
+        baseDataOffset = fr.getDataOffset();
+    }
+
+}

@@ -1,10 +1,12 @@
 package interactive;
 
+import data.DataStore;
 import hierarchy.*;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import utils.ByteSize;
 import utils.ShaderControl;
 import utils.ShaderType;
+import utils.Stopwatch;
 
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
@@ -21,6 +23,11 @@ public class RenderingCanvas implements GLEventListener {
     private boolean[] bufferBound;
 
     private ShaderControl shaderControl;
+
+    public static int polygonFillMode = GL2.GL_FILL;
+    public static int polygonType = GL2.GL_TRIANGLES;
+
+    private long lastLoadTime;
 
     public RenderingCanvas(Hierarchy hierarchy) {
         if (hierarchy == null) {
@@ -39,7 +46,6 @@ public class RenderingCanvas implements GLEventListener {
         GL2 gl = (GL2) glAutoDrawable.getGL();
         setupCamera();
 
-        gl.glShadeModel(GL2.GL_SMOOTH);
         gl.glClearColor(0.51f, 0.72f, 0.95f, 1f);
         gl.glEnable(GL2.GL_DEPTH_TEST);                                 // Enable depth testing.
         gl.glDepthFunc(GL2.GL_LEQUAL);                                  // The type of depth test.
@@ -70,24 +76,35 @@ public class RenderingCanvas implements GLEventListener {
         GL2 gl = (GL2) glAutoDrawable.getGL();
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
+        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, polygonFillMode);
+        gl.glPointSize(5);
 
         InputReader.processInput();
         Camera.update(gl);
 
         this.hierarchy.updateNodeVisibility();
 
-        DataLoader.loadAllNodeData(new LinkedList<>(this.hierarchy.getActiveNodes()));
+        if (System.currentTimeMillis() - lastLoadTime > 60) {
+            DataStore.loadAllNodeData(new LinkedList<>(this.hierarchy.getVisibleNodes()));
+            lastLoadTime = System.currentTimeMillis();
+        }
 
         drawAxes(gl);
 
-        this.hierarchyRenderer.draw(glAutoDrawable);
+        //this.hierarchyRenderer.draw(glAutoDrawable);
 
-        gl.glEnable(GL2.GL_LIGHTING);
-        shaderControl.useShader();
         for (Node node : this.hierarchy.getVisibleNodes()) {
-            NodeDataBlock dataBlock = DataLoader.getNodeData(node);
+
+            if (node.getId() > 0 && !DataStore.hasAllNodes(node.getSiblings())) {
+                node = node.getParent();
+            }
+
+            NodeDataBlock dataBlock = DataStore.getNodeData(node);
+
             if (dataBlock != null) {
+
                 if (!bufferBound[node.getId()]) {
+                    Stopwatch.start("total time binding buffer data");
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
                     gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity() * ByteSize.FLOAT, dataBlock.getVertexDataBuffer(), GL2.GL_STATIC_DRAW);
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
@@ -95,19 +112,41 @@ public class RenderingCanvas implements GLEventListener {
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
                     gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, dataBlock.getIndexBuffer().capacity() * ByteSize.INT, dataBlock.getIndexBuffer(), GL2.GL_STATIC_DRAW);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
-
+                    Stopwatch.stop("total time binding buffer data");
                     bufferBound[node.getId()] = true;
                 }
+
+                gl.glEnable(GL2.GL_LIGHTING);
+                shaderControl.useShader();
 
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
                 gl.glVertexPointer(3, GL2.GL_FLOAT, 24, 0);
                 gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
-                gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
-                gl.glDrawElements(GL2.GL_TRIANGLES, dataBlock.getNumIndices(), GL2.GL_UNSIGNED_INT, 0);
+
+                if (polygonType == GL2.GL_TRIANGLES) {
+                    gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
+                    gl.glDrawElements(GL2.GL_TRIANGLES, dataBlock.getNumIndices(), GL2.GL_UNSIGNED_INT, 0);
+                } else {
+                    gl.glDrawArrays(GL2.GL_POINTS, 0, dataBlock.getNumVertices());
+                }
+
+                shaderControl.dontUseShader();
+                gl.glDisable(GL2.GL_LIGHTING);
+
+//                FloatBuffer floatBuffer = dataBlock.getVertexDataBuffer();
+//                gl.glLineWidth(1);
+//                gl.glBegin(GL2.GL_LINES);
+//                gl.glColor3f(0.2f, 0.7f, 0);
+//                for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += 6) {
+//
+//                    gl.glVertex3f(floatBuffer.get(i), floatBuffer.get(i + 1), floatBuffer.get(i + 2));
+//                    gl.glVertex3f(floatBuffer.get(i) + floatBuffer.get(i + 3), floatBuffer.get(i + 1) + floatBuffer.get(i + 4), floatBuffer.get(i + 2) + floatBuffer.get(i + 5));
+//                }
+//                gl.glEnd();
+
             }
         }
-        shaderControl.dontUseShader();
-        gl.glDisable(GL2.GL_LIGHTING);
+
     }
 
     @Override
@@ -141,7 +180,7 @@ public class RenderingCanvas implements GLEventListener {
     private void setupCamera() {
         Camera.setPosition(new Vector3D(1500, 1500, 1500));
         Camera.setLookAt(new Vector3D(0, 0, 0));
-        Camera.setClipping(10, 10000);
+        Camera.setClipping(10,3000);
         Camera.setFOV(45);
     }
 
@@ -161,7 +200,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
 
-        float[] materialAmbientColor = {0.2f, 0.2f, 0.2f, 1.0f};
+        float[] materialAmbientColor = {0.2f, 0.8f, 0.2f, 1.0f};
         float[] materialDiffuseColor = {0.83f, 0.75f, 0.61f, 1.0f};
         float[] materialSpecularColor = {0.15f, 0.15f, 0.15f, 1.0f};
         float materialShininess = 80.0f;
@@ -178,5 +217,13 @@ public class RenderingCanvas implements GLEventListener {
         shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\fragment_shader.glsl", ShaderType.FRAGMENT);
         shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\vertex_shader.glsl", ShaderType.VERTEX);
         shaderControl.attachShaders();
+    }
+
+    public static void toggleFillMode() {
+        polygonFillMode = (polygonFillMode == GL2.GL_FILL) ? GL2.GL_LINE : GL2.GL_FILL;
+    }
+
+    public static void togglePolygonMode() {
+        polygonType = (polygonType  == GL2.GL_TRIANGLES) ? GL2.GL_POINTS : GL2.GL_TRIANGLES;
     }
 }

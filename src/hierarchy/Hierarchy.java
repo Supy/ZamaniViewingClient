@@ -18,7 +18,6 @@ public class Hierarchy {
     }
 
     public void updateNodeVisibility() {
-        Stopwatch.start("hierarchyRenderer.update");
         FrustumCuller.setFrustumMatrices(Camera.getModelViewMatrix(), Camera.getProjectionMatrix());
 
         Vector3D[] corners = new Vector3D[8];
@@ -33,9 +32,7 @@ public class Hierarchy {
             if (FrustumCuller.isBoxVisible(corners)) {
                 double screenSize = Camera.getProjectedScreenSize(corners);
 
-                //System.out.println("Box " + node.getId() + " screen size is " + screenSize);
-
-                if (screenSize > 40) {         // Try expand this node if it's not a leaf.
+                if (screenSize > 65) {         // Try expand this node if it's not a leaf.
                     if (node.isLeafNode()) {
                         visibleNodes.add(node);
                         activeNodes.add(node);
@@ -43,17 +40,15 @@ public class Hierarchy {
                         activeNodes.remove(node);
                         visibleNodes.remove(node);
                         nodesToCheck.addAll(node.getChildren());
-                        System.out.println("Expanding node " + node.getId());
                     }
-                } else if (screenSize > 6) { // Doesn't require expansion, but also doesn't have to be reduced.
+                } else if (screenSize > 10) { // Doesn't require expansion, but also doesn't have to be reduced.
                     visibleNodes.add(node);
                     activeNodes.add(node);
                 } else {                        // Try reduce node.
                     Node parentNode = node.getParent();
                     if (parentNode != null) {
-                        List<Node> siblings = parentNode.getChildren();
-                        if (allNodesBelowProjectedSize(siblings, 5)) {
-                            System.out.println("Collapsing " + siblings.size() + " children");
+                        List<Node> siblings = node.getSiblings();
+                        if (allNodesBelowProjectedSize(siblings, 10)) {
                             visibleNodes.removeAll(siblings);
                             activeNodes.removeAll(siblings);
                             nodesToCheck.removeAll(siblings);
@@ -68,10 +63,10 @@ public class Hierarchy {
                         activeNodes.add(node);
                     }
                 }
+            } else {
+                activeNodes.add(node);
             }
         }
-
-        Stopwatch.stop("hierarchyRenderer.update");
     }
 
     private boolean allNodesBelowProjectedSize(final List<Node> nodes, double threshold) {

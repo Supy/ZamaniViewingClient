@@ -2,6 +2,8 @@ package utils;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import java.nio.FloatBuffer;
+
 public class NormalsCalculator {
     public static float[] calculateFrom(float[] vertices, int[] faces) {
         if(vertices.length % 3 !=0) {
@@ -17,16 +19,16 @@ public class NormalsCalculator {
             int v3Index = faces[i+2] * 3;
 
             // Reconstruct vertices in 3D space.
-            Vector3D v1 = new Vector3D(vertices[v1Index], vertices[v1Index+1], vertices[v1Index+2]);
-            Vector3D v2 = new Vector3D(vertices[v2Index], vertices[v2Index+1], vertices[v2Index+2]);
-            Vector3D v3 = new Vector3D(vertices[v3Index], vertices[v3Index+1], vertices[v3Index+2]);
+            Vector3D v1 = new Vector3D(vertices[v1Index], vertices[v1Index + 1], vertices[v1Index + 2]);
+            Vector3D v2 = new Vector3D(vertices[v2Index], vertices[v2Index + 1], vertices[v2Index + 2]);
+            Vector3D v3 = new Vector3D(vertices[v3Index], vertices[v3Index + 1], vertices[v3Index + 2]);
 
             // Need two edges of the triangle to do the cross product.
             Vector3D edge1 = v2.subtract(v3);
             Vector3D edge2 = v1.subtract(v3);
 
             double[] normalD = edge2.crossProduct(edge1).toArray();
-            float[] normalF = new float[] {(float) normalD[0], (float)normalD[1], (float)normalD[2]};
+            float[] normalF = new float[]{(float) normalD[0], (float) normalD[1], (float) normalD[2]};
 
             // Need to normalize the normal else we'll get poorly weighted final normal when we average it.
             float length = (float) Math.sqrt(normalF[0] * normalF[0] + normalF[1] * normalF[1] + normalF[2] * normalF[2]);
@@ -48,8 +50,8 @@ public class NormalsCalculator {
             normals[v3Index + 2] += normalF[2];
 
             contributions[faces[i]]++;
-            contributions[faces[i+1]]++;
-            contributions[faces[i+2]]++;
+            contributions[faces[i + 1]]++;
+            contributions[faces[i + 2]]++;
         }
 
         for(int i=0; i < normals.length; i+=3){
@@ -68,21 +70,23 @@ public class NormalsCalculator {
         return normals;
     }
 
-    public static float[] mergeWithVertices(float[] vertices, int[] indices) {
+    public static FloatBuffer mergeWithVertices(final float[] vertices, final int[] indices) {
         float[] verticesAndNormals = new float[vertices.length * 2];
 
         float[] normals = calculateFrom(vertices, indices);
 
-        for(int i=0; i < verticesAndNormals.length; i++) {
-            int mod = i % 6;
+        for(int i=0; i < verticesAndNormals.length; i += 6) {
+            int index = i / 6;
+            int base = index * 3;
 
-            if(mod <= 2) {
-                verticesAndNormals[i] = vertices[(i / 6) * 3 + mod];
-            }else{
-                verticesAndNormals[i] = normals[(i / 6) * 3 + (i % 3)];
-            }
+            verticesAndNormals[i] = vertices[base];
+            verticesAndNormals[i + 1] = vertices[base + 1];
+            verticesAndNormals[i + 2] = vertices[base+ 2];
+            verticesAndNormals[i + 3] = normals[base];
+            verticesAndNormals[i + 4] = normals[base + 1];
+            verticesAndNormals[i + 5] = normals[base+ 2];
         }
 
-        return verticesAndNormals;
+        return FloatBuffer.wrap(verticesAndNormals);
     }
 }
