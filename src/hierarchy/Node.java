@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Node implements Comparable<Node> {
@@ -29,6 +30,10 @@ public class Node implements Comparable<Node> {
 
     private void setId(int id) {
         this.id = id;
+    }
+
+    public boolean isRootNode() {
+        return this.id == 0;
     }
 
     public int getDataBlockOffset() {

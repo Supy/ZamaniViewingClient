@@ -55,8 +55,8 @@ public class ViewingClient {
 
         frame = new Frame("Zamani Renderer");
         frame.add(canvas);
-//        frame.setSize(1200, 900);
-        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        frame.setSize(1200, 900);
+//        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
         frame.setUndecorated(false);
         frame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {

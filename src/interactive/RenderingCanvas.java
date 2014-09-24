@@ -11,8 +11,12 @@ import utils.Stopwatch;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RenderingCanvas implements GLEventListener {
 
@@ -27,7 +31,7 @@ public class RenderingCanvas implements GLEventListener {
     public static int polygonFillMode = GL2.GL_FILL;
     public static int polygonType = GL2.GL_TRIANGLES;
 
-    private long lastLoadTime;
+    private long lastLoadTime, lastClearTime;
 
     public RenderingCanvas(Hierarchy hierarchy) {
         if (hierarchy == null) {
@@ -46,15 +50,17 @@ public class RenderingCanvas implements GLEventListener {
         GL2 gl = (GL2) glAutoDrawable.getGL();
         setupCamera();
 
+        gl.glShadeModel(GL2.GL_FLAT);
         gl.glClearColor(0.51f, 0.72f, 0.95f, 1f);
         gl.glEnable(GL2.GL_DEPTH_TEST);                                 // Enable depth testing.
         gl.glDepthFunc(GL2.GL_LEQUAL);                                  // The type of depth test.
         gl.glClearDepth(1.0);
-        gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_NICEST);   // Quality of perspective calculations. Can possibly lower this.
+        gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_FASTEST);   // Quality of perspective calculations. Can possibly lower this.
         gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
         gl.glEnable(GL2.GL_CULL_FACE);
         gl.glFrontFace(GL2.GL_CCW);
+        gl.glPointSize(5);
 
         gl.glGenBuffers(this.buffers.capacity(), this.buffers);
 
@@ -77,25 +83,24 @@ public class RenderingCanvas implements GLEventListener {
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, polygonFillMode);
-        gl.glPointSize(5);
 
         InputReader.processInput();
         Camera.update(gl);
 
         this.hierarchy.updateNodeVisibility();
 
-        if (System.currentTimeMillis() - lastLoadTime > 60) {
-            DataStore.loadAllNodeData(new LinkedList<>(this.hierarchy.getVisibleNodes()));
+        if (System.currentTimeMillis() - lastLoadTime >= 50) {
+            DataStore.loadAllNodeData(new LinkedList<>(this.hierarchy.getExtendedNodeSet(this.hierarchy.getActiveNodes(), true, true)));
             lastLoadTime = System.currentTimeMillis();
         }
 
         drawAxes(gl);
 
-        //this.hierarchyRenderer.draw(glAutoDrawable);
+        this.hierarchyRenderer.draw(glAutoDrawable);
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
-            if (node.getId() > 0 && !DataStore.hasAllNodes(node.getSiblings())) {
+            if (!this.hierarchy.canBeRendered(node)) {
                 node = node.getParent();
             }
 
@@ -112,6 +117,7 @@ public class RenderingCanvas implements GLEventListener {
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
                     gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, dataBlock.getIndexBuffer().capacity() * ByteSize.INT, dataBlock.getIndexBuffer(), GL2.GL_STATIC_DRAW);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
+
                     Stopwatch.stop("total time binding buffer data");
                     bufferBound[node.getId()] = true;
                 }
@@ -124,10 +130,13 @@ public class RenderingCanvas implements GLEventListener {
                 gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
 
                 if (polygonType == GL2.GL_TRIANGLES) {
+                    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
                     gl.glDrawElements(GL2.GL_TRIANGLES, dataBlock.getNumIndices(), GL2.GL_UNSIGNED_INT, 0);
+                    gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
                 } else {
                     gl.glDrawArrays(GL2.GL_POINTS, 0, dataBlock.getNumVertices());
+                    gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
                 }
 
                 shaderControl.dontUseShader();
@@ -145,6 +154,27 @@ public class RenderingCanvas implements GLEventListener {
 //                gl.glEnd();
 
             }
+        }
+
+        if (System.currentTimeMillis() - lastClearTime >= 500) {
+            List<Map.Entry<Node, NodeDataBlock>> clearedNodes = DataStore.clearInactiveNodeDataBlocks(this.hierarchy.getExtendedNodeSet(this.hierarchy.getActiveNodes(), true, true));
+            for (Map.Entry<Node, NodeDataBlock> entry : clearedNodes) {
+                Node node = entry.getKey();
+                NodeDataBlock dataBlock = entry.getValue();
+
+                gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
+                gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity() * ByteSize.FLOAT, null, GL2.GL_STATIC_DRAW);
+                gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
+
+                gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
+                gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, dataBlock.getIndexBuffer().capacity() * ByteSize.INT, null, GL2.GL_STATIC_DRAW);
+                gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
+            }
+
+            if (clearedNodes.size() > 0) {
+                System.out.println("cleared " + clearedNodes.size() + " node data blocks");
+            }
+            lastClearTime = System.currentTimeMillis();
         }
 
     }
@@ -200,7 +230,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
 
-        float[] materialAmbientColor = {0.2f, 0.8f, 0.2f, 1.0f};
+        float[] materialAmbientColor = {0.2f, 0.2f, 0.2f, 1.0f};
         float[] materialDiffuseColor = {0.83f, 0.75f, 0.61f, 1.0f};
         float[] materialSpecularColor = {0.15f, 0.15f, 0.15f, 1.0f};
         float materialShininess = 80.0f;

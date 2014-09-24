@@ -32,7 +32,6 @@ public class HierarchyRenderer {
         GL2 gl = (GL2) glAutoDrawable.getGL();
 
         HashSet<Node> visibleNodes = hierarchy.getVisibleNodes();
-        HashSet<Node> activeNodes = hierarchy.getActiveNodes();
 
 //        textRenderer.beginRendering(glAutoDrawable.getWidth(), glAutoDrawable.getHeight());
 //        textRenderer.draw(visibleNodes.size() + " visible nodes", 40, 40);

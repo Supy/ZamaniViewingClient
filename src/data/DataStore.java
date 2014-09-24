@@ -1,17 +1,19 @@
 package data;
 
+import com.sun.corba.se.impl.orbutil.graph.NodeData;
 import hierarchy.BVHFileReader;
 import hierarchy.Node;
 import hierarchy.NodeDataBlock;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataStore {
+
+    private final static long INACTIVE_NODE_CUTOFF_TIME = 2000;
 
     protected static BVHFileReader fileReader;
     protected static int baseDataOffset;
@@ -31,7 +33,6 @@ public class DataStore {
     public static synchronized boolean isNodeInTransit(Node node) {
         return nodesInTransit.contains(node);
     }
-
     public static synchronized void markNodeInTransit(Node node) {
         nodesInTransit.add(node);
     }
@@ -41,6 +42,10 @@ public class DataStore {
 
     public static boolean hasAllNodes(List<Node> nodeList) {
         return nodeData.keySet().containsAll(nodeList);
+    }
+
+    public static boolean hasNode(Node node) {
+        return nodeData.containsKey(node);
     }
 
     public static void loadAllNodeData(List<Node> nodeList) {
@@ -56,12 +61,41 @@ public class DataStore {
     }
 
     public static final NodeDataBlock getNodeData(Node node) {
-        return nodeData.get(node);
+        if(nodeData.containsKey(node)) {
+            NodeDataBlock nodeDataBlock = nodeData.get(node);
+            nodeDataBlock.touchLastRequested();
+            return nodeDataBlock;
+        } else {
+            return null;
+        }
     }
 
     public static void setFileReader(BVHFileReader fr) throws IOException {
         fileReader = fr;
         baseDataOffset = fr.getDataOffset();
+    }
+
+    public static List<Map.Entry<Node, NodeDataBlock>> clearInactiveNodeDataBlocks(HashSet<Node> activeNodes) {
+        // List of nodes that have been removed that should be invalidated in OpenGL
+        List<Map.Entry<Node, NodeDataBlock>> clearedNodes = new LinkedList<>();
+
+        long currentTime = System.currentTimeMillis();
+
+        for (Map.Entry<Node, NodeDataBlock> nodeSet : nodeData.entrySet()) {
+            Node node = nodeSet.getKey();
+
+            // Only clear nodes that are not in the active nodes list.
+            if (!activeNodes.contains(node)) {
+                NodeDataBlock dataBlock = nodeSet.getValue();
+
+                if (currentTime - dataBlock.getLastRequested() >= INACTIVE_NODE_CUTOFF_TIME) {
+                    nodeData.remove(node);
+                    clearedNodes.add(nodeSet);
+                }
+            }
+        }
+
+        return clearedNodes;
     }
 
 }

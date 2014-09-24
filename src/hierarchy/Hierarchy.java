@@ -1,5 +1,6 @@
 package hierarchy;
 
+import data.DataStore;
 import interactive.Camera;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import utils.FrustumCuller;
@@ -12,9 +13,11 @@ public class Hierarchy {
     private List<Node> nodeList;
     private HashSet<Node> activeNodes = new HashSet<>();
     private HashSet<Node> visibleNodes = new HashSet<>();
+    private boolean[] nodeExpanded;
 
     public Hierarchy(int numElements) {
         this.nodeList = Arrays.asList(new Node[numElements]);
+        nodeExpanded = new boolean[numElements];
     }
 
     public void updateNodeVisibility() {
@@ -32,7 +35,7 @@ public class Hierarchy {
             if (FrustumCuller.isBoxVisible(corners)) {
                 double screenSize = Camera.getProjectedScreenSize(corners);
 
-                if (screenSize > 65) {         // Try expand this node if it's not a leaf.
+                if (screenSize > 70) {         // Try expand this node if it's not a leaf.
                     if (node.isLeafNode()) {
                         visibleNodes.add(node);
                         activeNodes.add(node);
@@ -40,19 +43,21 @@ public class Hierarchy {
                         activeNodes.remove(node);
                         visibleNodes.remove(node);
                         nodesToCheck.addAll(node.getChildren());
+                        nodeExpanded[node.getId()] = true;
                     }
-                } else if (screenSize > 10) { // Doesn't require expansion, but also doesn't have to be reduced.
+                } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
                     visibleNodes.add(node);
                     activeNodes.add(node);
                 } else {                        // Try reduce node.
                     Node parentNode = node.getParent();
                     if (parentNode != null) {
                         List<Node> siblings = node.getSiblings();
-                        if (allNodesBelowProjectedSize(siblings, 10)) {
+                        if (allNodesBelowProjectedSize(siblings, 15)) {
                             visibleNodes.removeAll(siblings);
                             activeNodes.removeAll(siblings);
                             nodesToCheck.removeAll(siblings);
                             nodesToCheck.add(parentNode);
+                            nodeExpanded[parentNode.getId()] = false;
                         } else {
                             // If we can't remove all siblings of this node, then we have to render it until we can.
                             visibleNodes.add(node);
@@ -108,4 +113,60 @@ public class Hierarchy {
         return this.activeNodes;
     }
 
+    /**
+        A node can be rendered if it and ll its siblings have their data loaded, or if
+        all their siblings have been expanded.
+     */
+    public boolean canBeRendered(Node node) {
+        // Root node is always renderable.
+        if (node.getId() == 0) {
+            return true;
+        }
+
+        for (Node sibling : node.getSiblings()) {
+            if (!DataStore.hasNode(sibling)) {
+                if (nodeExpanded[sibling.getId()]) {
+                    for (Node child : sibling.getChildren()) {
+                        if (!canBeRendered(child)) {
+                            return false;
+                        }
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+        Returns a set that includes parents and children of the given nodes.
+        Useful for pre-loading node data one level up and down the current position in the tree.
+
+        LinkedHashSet gives a predictable iteration order and is used to ensure visible / active nodes
+        are loaded before parents and children so that the renderer doesn't end up showing gaps in the
+        model. Simple priority queue.
+     */
+    public HashSet<Node> getExtendedNodeSet(HashSet<Node> nodes, boolean includeParents, boolean includeChildren) {
+        HashSet<Node> newList = new LinkedHashSet<>(nodes);
+
+        if (includeParents) {
+            for (Node node : nodes) {
+                if (!node.isRootNode()) {
+                    newList.add(node.getParent());
+                }
+            }
+        }
+
+        if (includeChildren) {
+            for (Node node : nodes) {
+                if (!node.isLeafNode()) {
+                    newList.addAll(node.getChildren());
+                }
+            }
+        }
+
+        return newList;
+    }
 }

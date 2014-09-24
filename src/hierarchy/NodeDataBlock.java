@@ -12,6 +12,8 @@ public class NodeDataBlock {
     private int numVertices;
     private final int numIndices;
 
+    private long lastRequested;
+
     public NodeDataBlock(final Node node, final FloatBuffer vertexDataBuffer, final IntBuffer indexBuffer) {
         this.node = node;
         this.vertexDataBuffer = vertexDataBuffer;
@@ -19,6 +21,7 @@ public class NodeDataBlock {
 
         this.numVertices = vertexDataBuffer.capacity(); // NodeDataBlock is given the vertex buffer that has not been merged with the vertices yet.
         this.numIndices = indexBuffer.capacity();
+        this.lastRequested = System.currentTimeMillis();
     }
 
     public final Node getNode() {
@@ -44,5 +47,13 @@ public class NodeDataBlock {
 
     public int getNumVertices() {
         return this.numVertices;
+    }
+
+    public void touchLastRequested() {
+        this.lastRequested = System.currentTimeMillis();
+    }
+
+    public long getLastRequested() {
+        return this.lastRequested;
     }
 }
