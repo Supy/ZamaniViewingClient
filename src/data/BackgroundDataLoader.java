@@ -20,6 +20,7 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
         while(true) {
             try {
                 Node node = loadQueue.take();
+                markNodeInTransit(node);
                 Stopwatch.start("total time loading node data");
                 loadNodeData(node);
                 Stopwatch.stop("total time loading node data");

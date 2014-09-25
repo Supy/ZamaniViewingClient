@@ -1,6 +1,7 @@
 package interactive;
 
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.FPSAnimator;
 import hierarchy.BVHBuilder;
 import hierarchy.BVHFileReader;
 import data.DataStore;
@@ -20,7 +21,7 @@ import java.util.logging.Logger;
 
 public class ViewingClient {
 
-    private static Animator animator;
+    private static FPSAnimator animator;
     private static Frame frame;
 
     public static void main(String[] args) {
@@ -66,7 +67,7 @@ public class ViewingClient {
         frame.setCursor(invisibleCursor());
 
         // Repeatedly calls the canvas's display() method.
-        animator = new Animator(canvas);
+        animator = new FPSAnimator(canvas, 60);
         animator.start();
         animator.setUpdateFPSFrames(60, System.out);
     }
@@ -81,7 +82,9 @@ public class ViewingClient {
         }
 
         Stopwatch.printTime("total time loading node data");
-        Stopwatch.printTime("total time calculating normals");
+        Stopwatch.printTime("total time calculating normals <thread 1>");
+        Stopwatch.printTime("total time calculating normals <thread 2>");
+        Stopwatch.printTime("total time calculating normals <thread 3>");
         Stopwatch.printTime("total time binding buffer data");
         System.exit(0);
     }

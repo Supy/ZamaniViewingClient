@@ -1,6 +1,5 @@
 package data;
 
-import com.sun.corba.se.impl.orbutil.graph.NodeData;
 import hierarchy.BVHFileReader;
 import hierarchy.Node;
 import hierarchy.NodeDataBlock;
@@ -13,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataStore {
 
-    private final static long INACTIVE_NODE_CUTOFF_TIME = 2000;
+    private final static long INACTIVE_NODE_CUTOFF_TIME = 4000;
 
     protected static BVHFileReader fileReader;
     protected static int baseDataOffset;
@@ -27,36 +26,43 @@ public class DataStore {
 
     static {
         new Thread(new BackgroundDataLoader()).start();
-        new Thread(new BackgroundNormalProcessor()).start();
+        new Thread(new BackgroundNormalProcessor(1)).start();
+        new Thread(new BackgroundNormalProcessor(2)).start();
+        new Thread(new BackgroundNormalProcessor(3)).start();
     }
 
-    public static synchronized boolean isNodeInTransit(Node node) {
+    protected static synchronized boolean isNodeInTransit(Node node) {
         return nodesInTransit.contains(node);
     }
-    public static synchronized void markNodeInTransit(Node node) {
+    protected static synchronized void markNodeInTransit(Node node) {
         nodesInTransit.add(node);
     }
-    public static synchronized void markNodeNotInTransit(Node node) {
+    protected static synchronized void markNodeNotInTransit(Node node) {
         nodesInTransit.remove(node);
-    }
-
-    public static boolean hasAllNodes(List<Node> nodeList) {
-        return nodeData.keySet().containsAll(nodeList);
     }
 
     public static boolean hasNode(Node node) {
         return nodeData.containsKey(node);
     }
 
-    public static void loadAllNodeData(List<Node> nodeList) {
+    public static void loadAllNodeData(LinkedHashSet<Node> nodeList) {
         //Stopwatch.start("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
+
+        loadQueue.clear();
         // Sort list to make more sequential reading.
         for (Node node : nodeList) {
             if (!nodeData.containsKey(node) && !isNodeInTransit(node)) {
-                markNodeInTransit(node);
                 loadQueue.offer(node);
             }
         }
+
+//        // Sort list to make more sequential reading.
+//        for (Node node : nodeList) {
+//            if (!nodeData.containsKey(node) && !isNodeInTransit(node)) {
+//                markNodeInTransit(node);
+//                loadQueue.offer(node);
+//            }
+//        }
         //Stopwatch.stopAndPrintGtZero("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
     }
 

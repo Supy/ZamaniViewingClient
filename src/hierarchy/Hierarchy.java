@@ -148,8 +148,11 @@ public class Hierarchy {
         are loaded before parents and children so that the renderer doesn't end up showing gaps in the
         model. Simple priority queue.
      */
-    public HashSet<Node> getExtendedNodeSet(HashSet<Node> nodes, boolean includeParents, boolean includeChildren) {
-        HashSet<Node> newList = new LinkedHashSet<>(nodes);
+    public LinkedHashSet<Node> getExtendedNodeSet(HashSet<Node> nodes, boolean includeParents, boolean includeChildren) {
+
+        // Convert to linked list so we can sort visible nodes before active nodes
+        LinkedList<Node> newList = new LinkedList<>(nodes);
+        Collections.sort(newList, new VisibleNodeLoadingComparator());
 
         if (includeParents) {
             for (Node node : nodes) {
@@ -167,6 +170,17 @@ public class Hierarchy {
             }
         }
 
-        return newList;
+        return new LinkedHashSet<>(newList);
+    }
+
+    class VisibleNodeLoadingComparator implements Comparator<Node> {
+        @Override
+        public int compare(Node n1, Node n2) {
+            int i1 = visibleNodes.contains(n1) ? 1 : 0;
+            int i2 = visibleNodes.contains(n2) ? 1 : 0;
+
+            return i1 - i2;
+        }
     }
 }
+

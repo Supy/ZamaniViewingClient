@@ -90,13 +90,13 @@ public class RenderingCanvas implements GLEventListener {
         this.hierarchy.updateNodeVisibility();
 
         if (System.currentTimeMillis() - lastLoadTime >= 50) {
-            DataStore.loadAllNodeData(new LinkedList<>(this.hierarchy.getExtendedNodeSet(this.hierarchy.getActiveNodes(), true, true)));
+            DataStore.loadAllNodeData(this.hierarchy.getExtendedNodeSet(this.hierarchy.getActiveNodes(), true, true));
             lastLoadTime = System.currentTimeMillis();
         }
 
-        drawAxes(gl);
+//        drawAxes(gl);
 
-        this.hierarchyRenderer.draw(glAutoDrawable);
+//        this.hierarchyRenderer.draw(glAutoDrawable);
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
