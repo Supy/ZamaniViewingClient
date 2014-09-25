@@ -176,8 +176,8 @@ public class Hierarchy {
     class VisibleNodeLoadingComparator implements Comparator<Node> {
         @Override
         public int compare(Node n1, Node n2) {
-            int i1 = visibleNodes.contains(n1) ? 1 : 0;
-            int i2 = visibleNodes.contains(n2) ? 1 : 0;
+            int i1 = visibleNodes.contains(n1) ? 0 : 1;
+            int i2 = visibleNodes.contains(n2) ? 0 : 1;
 
             return i1 - i2;
         }
