@@ -23,8 +23,6 @@ public class ViewingClient {
     private static Animator animator;
     private static Frame frame;
 
-    public static long total;
-
     public static void main(String[] args) {
         setupLogging();
 

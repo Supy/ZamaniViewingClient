@@ -242,10 +242,12 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void loadShaders(GL2 gl) throws Exception {
+        String basePath = System.getProperty("user.dir");
+
         shaderControl = new ShaderControl(gl);
-        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\flat_vertex_shader.glsl", ShaderType.VERTEX_FLAT);
-        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\fragment_shader.glsl", ShaderType.FRAGMENT);
-        shaderControl.loadShader("E:\\My Documents\\Workspace\\Zamani Viewing Client\\src\\shaders\\vertex_shader.glsl", ShaderType.VERTEX);
+        shaderControl.loadShader(basePath + "\\shaders\\flat_vertex_shader.glsl", ShaderType.VERTEX_FLAT);
+        shaderControl.loadShader(basePath + "\\shaders\\fragment_shader.glsl", ShaderType.FRAGMENT);
+        shaderControl.loadShader(basePath + "\\shaders\\vertex_shader.glsl", ShaderType.VERTEX);
         shaderControl.attachShaders();
     }
 
