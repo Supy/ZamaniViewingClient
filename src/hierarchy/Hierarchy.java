@@ -179,6 +179,14 @@ public class Hierarchy {
             int i1 = visibleNodes.contains(n1) ? 0 : 1;
             int i2 = visibleNodes.contains(n2) ? 0 : 1;
 
+            // If two nodes are visible, load whichever is closer to the camera.
+            if (i1 == 0 && i2 == 0) {
+                double distance1 = Camera.getPosition().distanceSq(n1.getCenter());
+                double distance2 = Camera.getPosition().distanceSq(n2.getCenter());
+
+                return (int) (distance1 - distance2);
+            }
+
             return i1 - i2;
         }
     }

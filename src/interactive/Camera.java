@@ -53,7 +53,7 @@ public class Camera {
         cameraUp = new Vector3D(0, 1, 0);
         fieldOfView = 45;
         cameraPositionDelta = new Vector3D(0, 0, 0);
-        cameraScale = 8f;
+        cameraScale = 4f;
         maxPitchRate = 5;
         maxHeadingRate = 5;
     }

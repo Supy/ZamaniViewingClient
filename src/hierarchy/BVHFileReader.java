@@ -15,7 +15,7 @@ public class BVHFileReader {
     public BVHFileReader(String filePath) throws IOException {
         this.raf = new RandomAccessFile(filePath, "r");
         FileChannel fileChannel = this.raf.getChannel();
-        this.buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+        this.buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(fileChannel.size(), Integer.MAX_VALUE));
         this.buffer.order(ByteOrder.LITTLE_ENDIAN);
     }
 

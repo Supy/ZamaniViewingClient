@@ -12,7 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataStore {
 
-    private final static long INACTIVE_NODE_CUTOFF_TIME = 4000;
+    private final static long INACTIVE_NODE_CUTOFF_TIME = 2000;
 
     protected static BVHFileReader fileReader;
     protected static int baseDataOffset;

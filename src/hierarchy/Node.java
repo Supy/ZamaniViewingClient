@@ -22,6 +22,7 @@ public class Node implements Comparable<Node> {
     private List<Node> siblings = null;
     private boolean leafNode = true;
 
+    private Vector3D center;
     private List<Vector3D> corners = new ArrayList<>(8);
 
     public int getId() {
@@ -34,6 +35,10 @@ public class Node implements Comparable<Node> {
 
     public boolean isRootNode() {
         return this.id == 0;
+    }
+
+    public boolean isLeafNode() {
+        return this.leafNode;
     }
 
     public int getDataBlockOffset() {
@@ -92,8 +97,17 @@ public class Node implements Comparable<Node> {
         return this.corners;
     }
 
-    public boolean isLeafNode() {
-        return this.leafNode;
+    public Vector3D getCenter() {
+        return this.center;
+    }
+
+    public void calculateCenter() {
+        Vector3D sum = Vector3D.ZERO;
+        for(Vector3D corner : this.corners) {
+            sum.add(corner);
+        }
+
+        this.center = sum.scalarMultiply(1.0 / 8.0);
     }
 
     public static Node fromJSON(JSONObject jo) throws JSONException {
@@ -124,6 +138,8 @@ public class Node implements Comparable<Node> {
         node.addCorner(new Vector3D(minX, maxY, maxZ));
         node.addCorner(new Vector3D(maxX, maxY, maxZ));
         node.addCorner(new Vector3D(maxX, minY, maxZ));
+
+        node.calculateCenter();
 
         return node;
     }

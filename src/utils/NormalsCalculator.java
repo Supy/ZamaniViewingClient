@@ -27,7 +27,8 @@ public class NormalsCalculator {
             Vector3D edge1 = v2.subtract(v3);
             Vector3D edge2 = v1.subtract(v3);
 
-            double[] normalD = edge2.crossProduct(edge1).toArray();
+            Vector3D cross = edge2.crossProduct(edge1);
+            double[] normalD = cross.toArray();
             float[] normalF = new float[]{(float) normalD[0], (float) normalD[1], (float) normalD[2]};
 
             // Need to normalize the normal else we'll get poorly weighted final normal when we average it.

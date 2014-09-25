@@ -28,8 +28,9 @@ public class RenderingCanvas implements GLEventListener {
 
     private ShaderControl shaderControl;
 
-    public static int polygonFillMode = GL2.GL_FILL;
-    public static int polygonType = GL2.GL_TRIANGLES;
+    private static int polygonFillMode = GL2.GL_FILL;
+    private static int polygonType = GL2.GL_TRIANGLES;
+    private static boolean drawNormals = false;
 
     private long lastLoadTime, lastClearTime;
 
@@ -86,6 +87,7 @@ public class RenderingCanvas implements GLEventListener {
 
         InputReader.processInput();
         Camera.update(gl);
+        setLightBehindCamera(gl);
 
         this.hierarchy.updateNodeVisibility();
 
@@ -96,7 +98,7 @@ public class RenderingCanvas implements GLEventListener {
 
 //        drawAxes(gl);
 
-//        this.hierarchyRenderer.draw(glAutoDrawable);
+        this.hierarchyRenderer.draw(glAutoDrawable);
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
@@ -142,17 +144,17 @@ public class RenderingCanvas implements GLEventListener {
                 shaderControl.dontUseShader();
                 gl.glDisable(GL2.GL_LIGHTING);
 
-//                FloatBuffer floatBuffer = dataBlock.getVertexDataBuffer();
-//                gl.glLineWidth(1);
-//                gl.glBegin(GL2.GL_LINES);
-//                gl.glColor3f(0.2f, 0.7f, 0);
-//                for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += 6) {
-//
-//                    gl.glVertex3f(floatBuffer.get(i), floatBuffer.get(i + 1), floatBuffer.get(i + 2));
-//                    gl.glVertex3f(floatBuffer.get(i) + floatBuffer.get(i + 3), floatBuffer.get(i + 1) + floatBuffer.get(i + 4), floatBuffer.get(i + 2) + floatBuffer.get(i + 5));
-//                }
-//                gl.glEnd();
-
+                if (drawNormals) {
+                    FloatBuffer floatBuffer = dataBlock.getVertexDataBuffer();
+                    gl.glLineWidth(1);
+                    gl.glBegin(GL2.GL_LINES);
+                    gl.glColor3f(0.2f, 0.7f, 0);
+                    for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += 6) {
+                        gl.glVertex3f(floatBuffer.get(i), floatBuffer.get(i + 1), floatBuffer.get(i + 2));
+                        gl.glVertex3f(floatBuffer.get(i) + floatBuffer.get(i + 3), floatBuffer.get(i + 1) + floatBuffer.get(i + 4), floatBuffer.get(i + 2) + floatBuffer.get(i + 5));
+                    }
+                    gl.glEnd();
+                }
             }
         }
 
@@ -163,12 +165,14 @@ public class RenderingCanvas implements GLEventListener {
                 NodeDataBlock dataBlock = entry.getValue();
 
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
-                gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity() * ByteSize.FLOAT, null, GL2.GL_STATIC_DRAW);
+                gl.glBufferData(GL2.GL_ARRAY_BUFFER, 0, null, GL2.GL_STATIC_DRAW);
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
 
                 gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
-                gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, dataBlock.getIndexBuffer().capacity() * ByteSize.INT, null, GL2.GL_STATIC_DRAW);
+                gl.glBufferData(GL2.GL_ELEMENT_ARRAY_BUFFER, 0, null, GL2.GL_STATIC_DRAW);
                 gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
+
+                bufferBound[node.getId()] = false;
             }
 
             if (clearedNodes.size() > 0) {
@@ -177,6 +181,12 @@ public class RenderingCanvas implements GLEventListener {
             lastClearTime = System.currentTimeMillis();
         }
 
+    }
+
+    private void setLightBehindCamera(GL2 gl) {
+        Vector3D position = Camera.getPosition();
+        float[] positionF = new float[] {(float) position.getX(), (float) position.getY(), (float) position.getZ()};
+        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, positionF, 0);
     }
 
     @Override
@@ -208,7 +218,7 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setupCamera() {
-        Camera.setPosition(new Vector3D(1500, 1500, 1500));
+        Camera.setPosition(new Vector3D(500, 500, 500));
         Camera.setLookAt(new Vector3D(0, 0, 0));
         Camera.setClipping(10,3000);
         Camera.setFOV(45);
@@ -230,7 +240,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
 
-        float[] materialAmbientColor = {0.2f, 0.2f, 0.2f, 1.0f};
+        float[] materialAmbientColor = {0.5f, 0.4f, 0.4f, 1.0f};
         float[] materialDiffuseColor = {0.83f, 0.75f, 0.61f, 1.0f};
         float[] materialSpecularColor = {0.15f, 0.15f, 0.15f, 1.0f};
         float materialShininess = 80.0f;
@@ -257,5 +267,9 @@ public class RenderingCanvas implements GLEventListener {
 
     public static void togglePolygonMode() {
         polygonType = (polygonType  == GL2.GL_TRIANGLES) ? GL2.GL_POINTS : GL2.GL_TRIANGLES;
+    }
+
+    public static void toggleNormals() {
+        drawNormals = !drawNormals;
     }
 }

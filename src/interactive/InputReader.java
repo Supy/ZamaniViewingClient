@@ -68,6 +68,10 @@ public class InputReader implements KeyListener, MouseMotionListener {
         if (e.getKeyChar() == 'p') {
             RenderingCanvas.togglePolygonMode();
         }
+
+        if (e.getKeyChar() == 'n') {
+            RenderingCanvas.toggleNormals();
+        }
     }
 
     @Override
