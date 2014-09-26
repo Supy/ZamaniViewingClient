@@ -23,18 +23,22 @@ public class DataInterleaver {
             positionNormalColourBuffer = ByteBuffer.allocate(numVertices * bytesPerVertex);
 
             for (int i = 0; i < positionNormalColourBuffer.capacity(); i += bytesPerVertex) {
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
+                int index = i / bytesPerVertex;
+                int base = index * 3;
 
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
+                positionNormalColourBuffer.putFloat(i, positionBuffer.get(base));
+                positionNormalColourBuffer.putFloat(i + 4, positionBuffer.get(base + 1));
+                positionNormalColourBuffer.putFloat(i + 8, positionBuffer.get(base + 2));
 
-                positionNormalColourBuffer.put(colourBuffer.get());
-                positionNormalColourBuffer.put(colourBuffer.get());
-                positionNormalColourBuffer.put(colourBuffer.get());
-                positionNormalColourBuffer.put(colourBuffer.get());
+                positionNormalColourBuffer.putFloat(i + 12, normalBuffer.get(base));
+                positionNormalColourBuffer.putFloat(i + 16, normalBuffer.get(base + 1));
+                positionNormalColourBuffer.putFloat(i + 20, normalBuffer.get(base + 2));
+
+                base = index * 4;
+                positionNormalColourBuffer.put(i + 24, colourBuffer.get(base));
+                positionNormalColourBuffer.put(i + 25, colourBuffer.get(base + 1));
+                positionNormalColourBuffer.put(i + 26, colourBuffer.get(base + 2));
+                positionNormalColourBuffer.put(i + 27, colourBuffer.get(base + 3));
             }
         } else {
             final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT ;
