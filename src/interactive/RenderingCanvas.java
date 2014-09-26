@@ -13,10 +13,8 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RenderingCanvas implements GLEventListener {
 
@@ -59,6 +57,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glHint(GL2.GL_PERSPECTIVE_CORRECTION_HINT, GL2.GL_FASTEST);   // Quality of perspective calculations. Can possibly lower this.
         gl.glEnableClientState(GL2.GL_VERTEX_ARRAY);
         gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
+        gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
         gl.glEnable(GL2.GL_CULL_FACE);
         gl.glFrontFace(GL2.GL_CCW);
         gl.glPointSize(5);
@@ -98,7 +97,7 @@ public class RenderingCanvas implements GLEventListener {
 
 //        drawAxes(gl);
 
-        this.hierarchyRenderer.draw(glAutoDrawable);
+        //this.hierarchyRenderer.draw(glAutoDrawable);
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
@@ -113,7 +112,7 @@ public class RenderingCanvas implements GLEventListener {
                 if (!bufferBound[node.getId()]) {
                     Stopwatch.start("total time binding buffer data");
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
-                    gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity() * ByteSize.FLOAT, dataBlock.getVertexDataBuffer(), GL2.GL_STATIC_DRAW);
+                    gl.glBufferData(GL2.GL_ARRAY_BUFFER, dataBlock.getVertexDataBuffer().capacity(), dataBlock.getVertexDataBuffer(), GL2.GL_STATIC_DRAW);
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
 
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
@@ -125,36 +124,42 @@ public class RenderingCanvas implements GLEventListener {
                 }
 
                 gl.glEnable(GL2.GL_LIGHTING);
-                shaderControl.useShader();
+                //shaderControl.useShader();
 
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
-                gl.glVertexPointer(3, GL2.GL_FLOAT, 24, 0);
-                gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
+                if (Hierarchy.hasColour) {
+                    gl.glVertexPointer(3, GL2.GL_FLOAT, 28, 0);
+                    gl.glNormalPointer(GL2.GL_FLOAT, 28, 12);
+                    gl.glColorPointer(4, GL2.GL_UNSIGNED_BYTE, 28, 24);
+                } else {
+                    gl.glVertexPointer(3, GL2.GL_FLOAT, 24, 0);
+                    gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
+                }
 
                 if (polygonType == GL2.GL_TRIANGLES) {
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
-                    gl.glDrawElements(GL2.GL_TRIANGLES, dataBlock.getNumIndices(), GL2.GL_UNSIGNED_INT, 0);
+                    gl.glDrawElements(GL2.GL_TRIANGLES, node.getNumFaces() * 3, GL2.GL_UNSIGNED_INT, 0);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
                 } else {
-                    gl.glDrawArrays(GL2.GL_POINTS, 0, dataBlock.getNumVertices());
+                    gl.glDrawArrays(GL2.GL_POINTS, 0, dataBlock.getVertexDataBuffer().capacity());
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
                 }
 
-                shaderControl.dontUseShader();
+                //shaderControl.dontUseShader();
                 gl.glDisable(GL2.GL_LIGHTING);
 
-                if (drawNormals) {
-                    FloatBuffer floatBuffer = dataBlock.getVertexDataBuffer();
-                    gl.glLineWidth(1);
-                    gl.glBegin(GL2.GL_LINES);
-                    gl.glColor3f(0.2f, 0.7f, 0);
-                    for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += 6) {
-                        gl.glVertex3f(floatBuffer.get(i), floatBuffer.get(i + 1), floatBuffer.get(i + 2));
-                        gl.glVertex3f(floatBuffer.get(i) + floatBuffer.get(i + 3), floatBuffer.get(i + 1) + floatBuffer.get(i + 4), floatBuffer.get(i + 2) + floatBuffer.get(i + 5));
-                    }
-                    gl.glEnd();
-                }
+//                if (drawNormals) {
+//                    FloatBuffer floatBuffer = dataBlock.getVertexDataBuffer();
+//                    gl.glLineWidth(1);
+//                    gl.glBegin(GL2.GL_LINES);
+//                    gl.glColor3f(0.2f, 0.7f, 0);
+//                    for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += 6) {
+//                        gl.glVertex3f(floatBuffer.get(i), floatBuffer.get(i + 1), floatBuffer.get(i + 2));
+//                        gl.glVertex3f(floatBuffer.get(i) + floatBuffer.get(i + 3), floatBuffer.get(i + 1) + floatBuffer.get(i + 4), floatBuffer.get(i + 2) + floatBuffer.get(i + 5));
+//                    }
+//                    gl.glEnd();
+//                }
             }
         }
 
@@ -218,7 +223,7 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setupCamera() {
-        Camera.setPosition(new Vector3D(500, 500, 500));
+        Camera.setPosition(new Vector3D(1000, 1000, 1000));
         Camera.setLookAt(new Vector3D(0, 0, 0));
         Camera.setClipping(10,3000);
         Camera.setFOV(45);

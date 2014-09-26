@@ -14,6 +14,8 @@ public class Node implements Comparable<Node> {
     // Data information
     private int dataBlockOffset;
     private int dataBlockLength;
+    private int numVertices;
+    private int numFaces;
 
     // Hierarchy information
     private Node parent = null;
@@ -55,6 +57,22 @@ public class Node implements Comparable<Node> {
 
     private void setDataBlockLength(int dataBlockLength) {
         this.dataBlockLength = dataBlockLength;
+    }
+
+    public int getNumVertices() {
+        return numVertices;
+    }
+
+    private void setNumVertices(int numVertices) {
+        this.numVertices = numVertices;
+    }
+
+    public int getNumFaces() {
+        return numFaces;
+    }
+
+    private void setNumFaces(int numFaces) {
+        this.numFaces = numFaces;
     }
 
     public Node getParent() {
@@ -128,6 +146,8 @@ public class Node implements Comparable<Node> {
         node.setParentId(jo.optInt("parent_id", -1));
         node.setDataBlockOffset(jo.getInt("block_offset"));
         node.setDataBlockLength(jo.getInt("block_length"));
+        node.setNumVertices(jo.getInt("num_vertices"));
+        node.setNumFaces(jo.getInt("num_faces"));
 
         // Corners
         node.addCorner(new Vector3D(minX, minY, minZ));

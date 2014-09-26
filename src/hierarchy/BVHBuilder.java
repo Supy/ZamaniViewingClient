@@ -8,19 +8,25 @@ import utils.Stopwatch;
 public class BVHBuilder {
 
     public static Hierarchy fromString(final String contents) throws JSONException {
-        JSONArray ja = new JSONArray(contents);
-        return buildHierarchy(ja);
+        JSONObject jo = new JSONObject(contents);
+        return buildHierarchy(jo);
     }
 
-    private static Hierarchy buildHierarchy(JSONArray ja) throws JSONException {
+    private static Hierarchy buildHierarchy(JSONObject jo) throws JSONException {
         Stopwatch.start("BVHBuilder.buildHierarchy");
+
+        boolean isColour = jo.getBoolean("vertex_colour");
+        System.out.println("Hierarchy using colour: " + isColour);
+        Hierarchy.hasColour = isColour;
+
+        JSONArray ja = jo.getJSONArray("nodes");
 
         Hierarchy hierarchy = new Hierarchy(ja.length());
 
         for (int i = 0; i < ja.length(); i++) {
-            JSONObject jo = ja.getJSONObject(i);
+            JSONObject jsonNodeObject = ja.getJSONObject(i);
 
-            Node node = Node.fromJSON(jo);
+            Node node = Node.fromJSON(jsonNodeObject);
             hierarchy.setNode(node.getId(), node);
         }
 

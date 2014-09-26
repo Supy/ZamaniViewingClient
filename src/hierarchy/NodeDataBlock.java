@@ -1,26 +1,26 @@
 package hierarchy;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class NodeDataBlock {
 
     private final Node node;
-    private FloatBuffer vertexDataBuffer;
+    private FloatBuffer positionBuffer;
+    private ByteBuffer colourBuffer;
     private final IntBuffer indexBuffer;
 
-    private int numVertices;
-    private final int numIndices;
+    private ByteBuffer vertexDataBuffer;
 
     private long lastRequested;
 
-    public NodeDataBlock(final Node node, final FloatBuffer vertexDataBuffer, final IntBuffer indexBuffer) {
+    public NodeDataBlock(final Node node, final FloatBuffer vertexBuffer, final ByteBuffer colourBuffer, final IntBuffer indexBuffer) {
         this.node = node;
-        this.vertexDataBuffer = vertexDataBuffer;
+        this.positionBuffer = vertexBuffer;
+        this.colourBuffer = colourBuffer;
         this.indexBuffer = indexBuffer;
 
-        this.numVertices = vertexDataBuffer.capacity(); // NodeDataBlock is given the vertex buffer that has not been merged with the vertices yet.
-        this.numIndices = indexBuffer.capacity();
         this.lastRequested = System.currentTimeMillis();
     }
 
@@ -28,25 +28,32 @@ public class NodeDataBlock {
         return this.node;
     }
 
-    public void setVertexDataBuffer(FloatBuffer vertexDataBuffer) {
-        this.vertexDataBuffer = vertexDataBuffer;
-        this.numVertices = vertexDataBuffer.capacity();
+    public ByteBuffer getColourBuffer() {
+        return colourBuffer;
     }
 
-    public final FloatBuffer getVertexDataBuffer() {
-        return this.vertexDataBuffer;
+    public void setColourBuffer(ByteBuffer colourBuffer) {
+        this.colourBuffer = colourBuffer;
+    }
+
+    public FloatBuffer getPositionBuffer() {
+        return positionBuffer;
+    }
+
+    public void setPositionBuffer(FloatBuffer positionBuffer) {
+        this.positionBuffer = positionBuffer;
     }
 
     public final IntBuffer getIndexBuffer() {
         return this.indexBuffer;
     }
 
-    public int getNumIndices() {
-        return this.numIndices;
+    public final ByteBuffer getVertexDataBuffer() {
+        return this.vertexDataBuffer;
     }
 
-    public int getNumVertices() {
-        return this.numVertices;
+    public void setVertexDataBuffer(ByteBuffer vertexDataBuffer) {
+        this.vertexDataBuffer = vertexDataBuffer;
     }
 
     public void touchLastRequested() {

@@ -1,10 +1,13 @@
 package data;
 
+import hierarchy.Hierarchy;
 import hierarchy.Node;
 import hierarchy.NodeDataBlock;
+import utils.DataInterleaver;
 import utils.NormalsCalculator;
 import utils.Stopwatch;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 public class BackgroundNormalProcessor extends DataStore implements Runnable {
@@ -22,21 +25,34 @@ public class BackgroundNormalProcessor extends DataStore implements Runnable {
                 NodeDataBlock dataBlock = processingQueue.take();
 
                 Stopwatch.start("total time calculating normals <thread " + this.id + ">");
-
                 try {
-                    FloatBuffer vertexNormalData = NormalsCalculator.mergeWithVertices(dataBlock.getVertexDataBuffer().array(), dataBlock.getIndexBuffer().array());
-                    dataBlock.setVertexDataBuffer(vertexNormalData);
+
+                    FloatBuffer normalBuffer = FloatBuffer.wrap(NormalsCalculator.calculateFrom(dataBlock.getPositionBuffer().array(), dataBlock.getIndexBuffer().array()));
+                    ByteBuffer vertexDataBuffer;
+
+                    if (Hierarchy.hasColour) {
+                        vertexDataBuffer = DataInterleaver.mergePositionNormalColour(dataBlock.getPositionBuffer(), normalBuffer, dataBlock.getColourBuffer());
+                    } else {
+                        vertexDataBuffer = DataInterleaver.mergePositionNormal(dataBlock.getPositionBuffer(), normalBuffer);
+                    }
+
+                    // Set interleaved buffer and clear the others
+                    dataBlock.setVertexDataBuffer(vertexDataBuffer);
+                    dataBlock.setPositionBuffer(null);
+                    dataBlock.setColourBuffer(null);
+
                     nodeData.put(dataBlock.getNode(), dataBlock);
+
                 } catch (ArrayIndexOutOfBoundsException e) {
                     Node node = dataBlock.getNode();
                     System.err.println(
                             String.format(
-                                    "Failed to calculate normals for node %s. Read from %s for %s bytes. Vertices: %s Indices: %s",
+                                    "Failed to calculate normals for node %s. Read from %s for %s bytes. Vertices: %s Faces: %s",
                                     node.getId(),
                                     node.getDataBlockOffset(),
                                     node.getDataBlockLength(),
-                                    dataBlock.getNumVertices(),
-                                    dataBlock.getNumIndices()
+                                    node.getNumVertices(),
+                                    node.getNumFaces()
                             )
                     );
                     e.printStackTrace(System.err);
@@ -44,9 +60,7 @@ public class BackgroundNormalProcessor extends DataStore implements Runnable {
 
                 markNodeNotInTransit(dataBlock.getNode());
                 Stopwatch.stop("total time calculating normals <thread " + this.id + ">");
-            } catch (InterruptedException e) {
-
-            }
+            } catch (InterruptedException ignored) { }
         }
     }
 }

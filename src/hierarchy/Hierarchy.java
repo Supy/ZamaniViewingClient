@@ -10,6 +10,8 @@ import java.util.*;
 
 public class Hierarchy {
 
+    public static boolean hasColour = true;
+
     private List<Node> nodeList;
     private HashSet<Node> activeNodes = new HashSet<>();
     private HashSet<Node> visibleNodes = new HashSet<>();

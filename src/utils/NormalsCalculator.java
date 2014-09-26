@@ -5,30 +5,29 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import java.nio.FloatBuffer;
 
 public class NormalsCalculator {
-    public static float[] calculateFrom(float[] vertices, int[] faces) {
-        if(vertices.length % 3 !=0) {
-            throw new RuntimeException("number of vertices must be a multiple of 3");
+    public static float[] calculateFrom(float[] positions, int[] faces) {
+        if(positions.length % 3 !=0) {
+            throw new RuntimeException("number of vertex positions must be a multiple of 3");
         }
 
-        int[] contributions = new int[vertices.length / 3];
-        float[] normals = new float[vertices.length];
+        int[] contributions = new int[positions.length / 3];
+        float[] normals = new float[positions.length];
 
         for(int i=0; i < faces.length; i+= 3) {
-            int v1Index = faces[i] * 3;
-            int v2Index = faces[i+1] * 3;
-            int v3Index = faces[i+2] * 3;
+            int p1Index = faces[i] * 3;
+            int p2Index = faces[i+1] * 3;
+            int p3Index = faces[i+2] * 3;
 
             // Reconstruct vertices in 3D space.
-            Vector3D v1 = new Vector3D(vertices[v1Index], vertices[v1Index + 1], vertices[v1Index + 2]);
-            Vector3D v2 = new Vector3D(vertices[v2Index], vertices[v2Index + 1], vertices[v2Index + 2]);
-            Vector3D v3 = new Vector3D(vertices[v3Index], vertices[v3Index + 1], vertices[v3Index + 2]);
+            Vector3D v1 = new Vector3D(positions[p1Index], positions[p1Index + 1], positions[p1Index + 2]);
+            Vector3D v2 = new Vector3D(positions[p2Index], positions[p2Index + 1], positions[p2Index + 2]);
+            Vector3D v3 = new Vector3D(positions[p3Index], positions[p3Index + 1], positions[p3Index + 2]);
 
             // Need two edges of the triangle to do the cross product.
             Vector3D edge1 = v1.subtract(v3);
             Vector3D edge2 = v2.subtract(v3);
 
             Vector3D cross = edge1.crossProduct(edge2);
-
             double[] normalD = cross.toArray();
             float[] normalF = new float[]{(float) normalD[0], (float) normalD[1], (float) normalD[2]};
 
@@ -39,17 +38,17 @@ public class NormalsCalculator {
             normalF[2] /= length;
 
             // Add this normal to each of the face's vertices' current sum. We'll average it out later.
-            normals[v1Index] += normalF[0];
-            normals[v1Index + 1] += normalF[1];
-            normals[v1Index + 2] += normalF[2];
+            normals[p1Index] += normalF[0];
+            normals[p1Index + 1] += normalF[1];
+            normals[p1Index + 2] += normalF[2];
 
-            normals[v2Index] += normalF[0];
-            normals[v2Index + 1] += normalF[1];
-            normals[v2Index + 2] += normalF[2];
+            normals[p2Index] += normalF[0];
+            normals[p2Index + 1] += normalF[1];
+            normals[p2Index + 2] += normalF[2];
 
-            normals[v3Index] += normalF[0];
-            normals[v3Index + 1] += normalF[1];
-            normals[v3Index + 2] += normalF[2];
+            normals[p3Index] += normalF[0];
+            normals[p3Index + 1] += normalF[1];
+            normals[p3Index + 2] += normalF[2];
 
             contributions[faces[i]]++;
             contributions[faces[i + 1]]++;
@@ -70,25 +69,5 @@ public class NormalsCalculator {
         }
 
         return normals;
-    }
-
-    public static FloatBuffer mergeWithVertices(final float[] vertices, final int[] indices) {
-        float[] verticesAndNormals = new float[vertices.length * 2];
-
-        float[] normals = calculateFrom(vertices, indices);
-
-        for(int i=0; i < verticesAndNormals.length; i += 6) {
-            int index = i / 6;
-            int base = index * 3;
-
-            verticesAndNormals[i] = vertices[base];
-            verticesAndNormals[i + 1] = vertices[base + 1];
-            verticesAndNormals[i + 2] = vertices[base+ 2];
-            verticesAndNormals[i + 3] = normals[base];
-            verticesAndNormals[i + 4] = normals[base + 1];
-            verticesAndNormals[i + 5] = normals[base+ 2];
-        }
-
-        return FloatBuffer.wrap(verticesAndNormals);
     }
 }
