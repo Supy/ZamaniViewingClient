@@ -1,5 +1,6 @@
 package data;
 
+import hierarchy.Node;
 import hierarchy.NodeDataBlock;
 import utils.NormalsCalculator;
 import utils.Stopwatch;
@@ -22,10 +23,25 @@ public class BackgroundNormalProcessor extends DataStore implements Runnable {
 
                 Stopwatch.start("total time calculating normals <thread " + this.id + ">");
 
-                FloatBuffer vertexNormalData = NormalsCalculator.mergeWithVertices(dataBlock.getVertexDataBuffer().array(), dataBlock.getIndexBuffer().array());
-                dataBlock.setVertexDataBuffer(vertexNormalData);
+                try {
+                    FloatBuffer vertexNormalData = NormalsCalculator.mergeWithVertices(dataBlock.getVertexDataBuffer().array(), dataBlock.getIndexBuffer().array());
+                    dataBlock.setVertexDataBuffer(vertexNormalData);
+                    nodeData.put(dataBlock.getNode(), dataBlock);
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    Node node = dataBlock.getNode();
+                    System.err.println(
+                            String.format(
+                                    "Failed to calculate normals for node %s. Read from %s for %s bytes. Vertices: %s Indices: %s",
+                                    node.getId(),
+                                    node.getDataBlockOffset(),
+                                    node.getDataBlockLength(),
+                                    dataBlock.getNumVertices(),
+                                    dataBlock.getNumIndices()
+                            )
+                    );
+                    e.printStackTrace(System.err);
+                }
 
-                nodeData.put(dataBlock.getNode(), dataBlock);
                 markNodeNotInTransit(dataBlock.getNode());
                 Stopwatch.stop("total time calculating normals <thread " + this.id + ">");
             } catch (InterruptedException e) {

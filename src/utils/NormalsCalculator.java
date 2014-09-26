@@ -24,10 +24,11 @@ public class NormalsCalculator {
             Vector3D v3 = new Vector3D(vertices[v3Index], vertices[v3Index + 1], vertices[v3Index + 2]);
 
             // Need two edges of the triangle to do the cross product.
-            Vector3D edge1 = v2.subtract(v3);
-            Vector3D edge2 = v1.subtract(v3);
+            Vector3D edge1 = v1.subtract(v3);
+            Vector3D edge2 = v2.subtract(v3);
 
-            Vector3D cross = edge2.crossProduct(edge1);
+            Vector3D cross = edge1.crossProduct(edge2);
+
             double[] normalD = cross.toArray();
             float[] normalF = new float[]{(float) normalD[0], (float) normalD[1], (float) normalD[2]};
 

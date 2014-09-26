@@ -42,7 +42,6 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
 
                 NodeDataBlock nodeDataBlock = new NodeDataBlock(node, FloatBuffer.wrap(plyReader.getVertices()), IntBuffer.wrap(plyReader.getIndices()));
                 processingQueue.put(nodeDataBlock);
-
                 //log.log(Level.INFO, "Loaded data for node " + node.getId());
             } catch (Exception e) {
                 //log.log(Level.WARNING, "Failed to data block for node " + node.getId(), e);
