@@ -3,7 +3,7 @@ varying vec3 normal, lightDir, eyeVec;
 void main (void)
 {
 	vec4 final_color =
-	(gl_LightSource[0].ambient * gl_FrontMaterial.ambient);
+	(gl_LightModel.ambient * gl_LightSource[0].ambient * gl_FrontMaterial.emission);
 
 	vec3 N = normalize(normal);
 	vec3 L = normalize(lightDir);
@@ -13,7 +13,6 @@ void main (void)
 	if(lambertTerm > 0.0)
 	{
 		final_color += gl_LightSource[0].diffuse *
-		               gl_FrontMaterial.diffuse *
 					   lambertTerm;
 
 		vec3 E = normalize(eyeVec);
@@ -21,7 +20,6 @@ void main (void)
 		float specular = pow( max(dot(R, E), 0.0),
 		                 gl_FrontMaterial.shininess );
 		final_color += gl_LightSource[0].specular *
-		               gl_FrontMaterial.specular *
 					   specular;
 	}
 

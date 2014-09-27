@@ -1,6 +1,7 @@
 package utils;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 public class DataInterleaver {
@@ -20,7 +21,8 @@ public class DataInterleaver {
 
         if (colourBuffer != null) {
             final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT + 4 * 1;
-            positionNormalColourBuffer = ByteBuffer.allocate(numVertices * bytesPerVertex);
+            positionNormalColourBuffer = ByteBuffer.allocateDirect(numVertices * bytesPerVertex);
+            positionNormalColourBuffer.order(ByteOrder.nativeOrder());
 
             for (int i = 0; i < positionNormalColourBuffer.capacity(); i += bytesPerVertex) {
                 int index = i / bytesPerVertex;
@@ -42,16 +44,20 @@ public class DataInterleaver {
             }
         } else {
             final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT ;
-            positionNormalColourBuffer = ByteBuffer.allocate(numVertices * bytesPerVertex);
+            positionNormalColourBuffer = ByteBuffer.allocateDirect(numVertices * bytesPerVertex);
+            positionNormalColourBuffer.order(ByteOrder.nativeOrder());
 
             for (int i = 0; i < positionNormalColourBuffer.capacity(); i += bytesPerVertex) {
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
-                positionNormalColourBuffer.putFloat(positionBuffer.get());
+                int index = i / bytesPerVertex;
+                int base = index * 3;
 
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
-                positionNormalColourBuffer.putFloat(normalBuffer.get());
+                positionNormalColourBuffer.putFloat(i, positionBuffer.get(base));
+                positionNormalColourBuffer.putFloat(i + 4, positionBuffer.get(base + 1));
+                positionNormalColourBuffer.putFloat(i + 8, positionBuffer.get(base + 2));
+
+                positionNormalColourBuffer.putFloat(i + 12, normalBuffer.get(base));
+                positionNormalColourBuffer.putFloat(i + 16, normalBuffer.get(base + 1));
+                positionNormalColourBuffer.putFloat(i + 20, normalBuffer.get(base + 2));
             }
         }
 

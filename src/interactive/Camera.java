@@ -113,6 +113,10 @@ public class Camera {
 
     public static Vector3D getPosition() { return cameraPosition; }
 
+    public static Vector3D getLookAt() {
+        return cameraLookAt;
+    }
+
     public static void setLookAt(Vector3D pos) {
         cameraLookAt = pos;
     }

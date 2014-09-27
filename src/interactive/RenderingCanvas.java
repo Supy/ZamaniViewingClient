@@ -49,7 +49,7 @@ public class RenderingCanvas implements GLEventListener {
         GL2 gl = (GL2) glAutoDrawable.getGL();
         setupCamera();
 
-        gl.glShadeModel(GL2.GL_FLAT);
+        gl.glShadeModel(GL2.GL_SMOOTH);
         gl.glClearColor(0.51f, 0.72f, 0.95f, 1f);
         gl.glEnable(GL2.GL_DEPTH_TEST);                                 // Enable depth testing.
         gl.glDepthFunc(GL2.GL_LEQUAL);                                  // The type of depth test.
@@ -97,7 +97,7 @@ public class RenderingCanvas implements GLEventListener {
 
 //        drawAxes(gl);
 
-        //this.hierarchyRenderer.draw(glAutoDrawable);
+//        this.hierarchyRenderer.draw(glAutoDrawable);
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
@@ -189,7 +189,7 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setLightBehindCamera(GL2 gl) {
-        Vector3D position = Camera.getPosition();
+        Vector3D position = Camera.getPosition().subtract(Camera.getLookAt());
         float[] positionF = new float[] {(float) position.getX(), (float) position.getY(), (float) position.getZ()};
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, positionF, 0);
     }
@@ -233,7 +233,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glEnable(GL2.GL_LIGHTING);
         gl.glEnable(GL2.GL_COLOR_MATERIAL);
 
-        float[] worldAmbience = {0.7f, 0.7f, 0.7f, 1f};
+        float[] worldAmbience = {0.33f, 0.33f, 0.33f, 1f};
         gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, worldAmbience, 0);
 
         float[] lightPosition = {10000, 10000, 10000, 1};
@@ -245,14 +245,8 @@ public class RenderingCanvas implements GLEventListener {
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
 
-        float[] materialAmbientColor = {0.5f, 0.4f, 0.4f, 1.0f};
-        float[] materialDiffuseColor = {0.83f, 0.75f, 0.61f, 1.0f};
-        float[] materialSpecularColor = {0.15f, 0.15f, 0.15f, 1.0f};
         float materialShininess = 80.0f;
 
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_AMBIENT, materialAmbientColor, 0);
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_DIFFUSE, materialDiffuseColor, 0);
-        gl.glMaterialfv(GL2.GL_FRONT_AND_BACK, GL2.GL_SPECULAR, materialSpecularColor, 0);
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, materialShininess);
     }
 

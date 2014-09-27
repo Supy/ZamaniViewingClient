@@ -9,7 +9,7 @@ void main() {
     vec4 diffuseC;
     vec4 specularC;
     int numLightSources = 1;
-    gl_FrontColor = gl_FrontMaterial.ambient;
+    gl_FrontColor = gl_LightModel.ambient * gl_FrontMaterial.emission;
     for(int i = 0; i < numLightSources; i++) {
         lightDir = normalize(vec3(gl_LightSource[i].position));
         NdotL = max(dot(normal, lightDir), 0.0);
