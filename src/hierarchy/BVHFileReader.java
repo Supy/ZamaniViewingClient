@@ -9,28 +9,24 @@ import java.nio.channels.FileChannel;
 
 public class BVHFileReader {
 
-    private final RandomAccessFile raf;
-    private final MappedByteBuffer buffer;
+    private final RandomAccessFile file;
 
     public BVHFileReader(String filePath) throws IOException {
-        this.raf = new RandomAccessFile(filePath, "r");
-        FileChannel fileChannel = this.raf.getChannel();
-        this.buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, Math.min(fileChannel.size(), Integer.MAX_VALUE));
-        this.buffer.order(ByteOrder.LITTLE_ENDIAN);
+        this.file = new RandomAccessFile(filePath, "r");
     }
 
     public String readHierarchyHeader() throws IOException {
         // Loads in the JSON hierarchy header
         byte[] header = new byte[getHeaderLength()];
-        this.buffer.position(4);
-        this.buffer.get(header);
+        this.file.seek(4);
+        this.file.read(header);
         return new String(header);
     }
 
-    public ByteBuffer readBlock(int offset, int numBytes) throws IOException {
+    public ByteBuffer readBlock(long offset, int numBytes) throws IOException {
         byte[] bytes = new byte[numBytes];
-        this.buffer.position(offset);
-        this.buffer.get(bytes, 0, numBytes);
+        this.file.seek(offset);
+        this.file.read(bytes);
         return ByteBuffer.wrap(bytes);
     }
 
@@ -39,8 +35,8 @@ public class BVHFileReader {
     }
 
     private int getHeaderLength() throws IOException {
-        this.buffer.position(0);
-        int headerLength = this.buffer.getInt();
+        this.file.seek(0);
+        int headerLength = Integer.reverseBytes(this.file.readInt());
 
         if (headerLength <= 0) {
             throw new RuntimeException("Invalid header length");
