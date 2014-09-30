@@ -20,6 +20,8 @@ public class BackgroundNormalProcessor extends DataStore implements Runnable {
 
     @Override
     public void run() {
+        Thread.currentThread().setName("backgroundNormalProcessor-" + this.id);
+
         while(true) {
             try {
                 NodeDataBlock dataBlock = processingQueue.take();

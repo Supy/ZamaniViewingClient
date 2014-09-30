@@ -17,9 +17,10 @@ import java.util.logging.Level;
 public class BackgroundDataLoader extends DataStore implements Runnable {
 
     private static final Logger log = Logger.getLogger(DataStore.class);
-
     @Override
     public void run() {
+        Thread.currentThread().setName("backgroundDataLoader");
+
         while(true) {
             try {
                 Node node = loadQueue.take();
