@@ -19,6 +19,10 @@ public class BVHBuilder {
         System.out.println("Hierarchy using colour: " + isColour);
         Hierarchy.hasColour = isColour;
 
+        int maxDepth = jo.getInt("max_depth");
+        System.out.println("Hierarchy depth: " + maxDepth);
+        Hierarchy.maxDepth = maxDepth;
+
         JSONArray ja = jo.getJSONArray("nodes");
 
         Hierarchy hierarchy = new Hierarchy(ja.length());

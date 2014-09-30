@@ -5,11 +5,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class Node implements Comparable<Node> {
     private int id;
+    private int depth;
 
     // Data information
     private int dataBlockOffset;
@@ -41,6 +41,14 @@ public class Node implements Comparable<Node> {
 
     public boolean isLeafNode() {
         return this.leafNode;
+    }
+
+    private void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    public int getDepth() {
+        return this.depth;
     }
 
     public int getDataBlockOffset() {
@@ -143,6 +151,7 @@ public class Node implements Comparable<Node> {
         Node node = new Node();
 
         node.setId(jo.getInt("id"));
+        node.setDepth(jo.getInt("depth"));
         node.setParentId(jo.optInt("parent_id", -1));
         node.setDataBlockOffset(jo.getInt("block_offset"));
         node.setDataBlockLength(jo.getInt("block_length"));
