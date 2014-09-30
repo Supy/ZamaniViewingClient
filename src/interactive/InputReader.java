@@ -1,5 +1,6 @@
 package interactive;
 
+import utils.FeatureToggle;
 import utils.ShaderControl;
 
 import javax.media.opengl.GL2;
@@ -58,19 +59,23 @@ public class InputReader implements KeyListener, MouseMotionListener {
     @Override
     public void keyTyped(final KeyEvent e) {
         if (e.getKeyChar() == 'v') {
-            ShaderControl.toggleFlatShader();
+            FeatureToggle.toggleShaderType();
         }
 
         if (e.getKeyChar() == 'f') {
-            RenderingCanvas.toggleFillMode();
+            FeatureToggle.togglePolygonFillMode();
         }
 
         if (e.getKeyChar() == 'p') {
-            RenderingCanvas.togglePolygonMode();
+            FeatureToggle.togglePolygonMode();
         }
 
         if (e.getKeyChar() == 'n') {
-            RenderingCanvas.toggleNormals();
+            FeatureToggle.toggleDrawNormals();
+        }
+
+        if (e.getKeyChar() == 'b') {
+            FeatureToggle.toggleDrawBoundingVolumes();
         }
     }
 

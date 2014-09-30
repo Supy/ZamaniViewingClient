@@ -46,7 +46,6 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
                 // VERTICES
                 float[] vertices = new float[node.getNumVertices() * 3];
 
-                int pos = buffer.position();
                 // Create a view of the byte buffer as a float buffer to allow us to read all vertices
                 // into our array using a single call - good sequential read.
                 FloatBuffer fb = buffer.asFloatBuffer();
