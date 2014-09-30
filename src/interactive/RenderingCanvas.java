@@ -1,6 +1,5 @@
 package interactive;
 
-import com.sun.org.apache.xalan.internal.utils.FeatureManager;
 import data.DataStore;
 import hierarchy.*;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -10,7 +9,6 @@ import javax.media.opengl.GL2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
 import java.util.Map;
