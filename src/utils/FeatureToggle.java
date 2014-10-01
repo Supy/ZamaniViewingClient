@@ -9,6 +9,7 @@ public class FeatureToggle {
     private static int polygonFillMode = GL2.GL_FILL;
     private static int polygonMode = GL2.GL_TRIANGLES;
     private static int shaderType = GL2.GL_SMOOTH;
+    private static int frontFace = GL2.GL_CCW;
 
     public static void toggleDrawBoundingVolumes() {
         drawBoundingVolumes = !drawBoundingVolumes;
@@ -48,5 +49,13 @@ public class FeatureToggle {
 
     public static int getShaderType() {
         return shaderType;
+    }
+
+    public static void toggleFrontFace() {
+        frontFace = (frontFace == GL2.GL_CCW) ? GL2.GL_CW : GL2.GL_CCW;
+    }
+
+    public static int getFrontFace() {
+        return frontFace;
     }
 }

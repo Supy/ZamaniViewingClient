@@ -56,13 +56,6 @@ public class DataStore {
             }
         }
 
-//        // Sort list to make more sequential reading.
-//        for (Node node : nodeList) {
-//            if (!nodeData.containsKey(node) && !isNodeInTransit(node)) {
-//                markNodeInTransit(node);
-//                loadQueue.offer(node);
-//            }
-//        }
         //Stopwatch.stopAndPrintGtZero("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
     }
 
@@ -102,6 +95,10 @@ public class DataStore {
         }
 
         return clearedNodes;
+    }
+
+    public static void invalidateCache() {
+        nodeData.clear();
     }
 
 }

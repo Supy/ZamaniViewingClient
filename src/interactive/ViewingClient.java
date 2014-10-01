@@ -93,7 +93,6 @@ public class ViewingClient extends JFrame {
             Hierarchy hierarchy = BVHBuilder.fromString(fileReader.readHierarchyHeader());
             DataStore.setFileReader(fileReader);
 
-
             InputReader inputReader = new InputReader();
             RenderingCanvas renderingCanvas = new RenderingCanvas(hierarchy);
 
@@ -105,6 +104,7 @@ public class ViewingClient extends JFrame {
             this.add(canvas, BorderLayout.CENTER);
             this.setTitle("Zamani Viewing Client - " + filePath);
             this.inputFileDisplay.setText(filePath);
+            this.openFileButton.setEnabled(false);
             this.setCursor(makeInvisibleCursor());
             this.revalidate();
 

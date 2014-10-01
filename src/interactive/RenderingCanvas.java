@@ -19,13 +19,7 @@ public class RenderingCanvas implements GLEventListener {
     private HierarchyRenderer hierarchyRenderer;
 
     private IntBuffer buffers;
-    private boolean[] bufferBound;
-
-    private ShaderControl shaderControl;
-
-    private static int polygonFillMode = GL2.GL_FILL;
-    private static int polygonType = GL2.GL_TRIANGLES;
-    private static boolean drawNormals = false;
+    private static boolean[] bufferBound;
 
     private long lastLoadTime, lastClearTime;
 
@@ -61,11 +55,6 @@ public class RenderingCanvas implements GLEventListener {
         gl.glGenBuffers(this.buffers.capacity(), this.buffers);
 
         setupLighting(gl);
-        try {
-            loadShaders(gl);
-        } catch (Exception e) {
-            System.err.println("Failed to load shaders.");
-        }
     }
 
     @Override
@@ -80,6 +69,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, FeatureToggle.getPolygonFillMode());
         gl.glShadeModel(FeatureToggle.getShaderType());
+        gl.glFrontFace(FeatureToggle.getFrontFace());
 
         InputReader.processInput();
         Camera.update(gl);
@@ -245,13 +235,7 @@ public class RenderingCanvas implements GLEventListener {
         gl.glMaterialf(GL2.GL_FRONT_AND_BACK, GL2.GL_SHININESS, materialShininess);
     }
 
-    private void loadShaders(GL2 gl) throws Exception {
-        String basePath = System.getProperty("user.dir");
-
-        shaderControl = new ShaderControl(gl);
-        shaderControl.loadShader(basePath + "\\shaders\\flat_vertex_shader.glsl", ShaderType.VERTEX_FLAT);
-        shaderControl.loadShader(basePath + "\\shaders\\fragment_shader.glsl", ShaderType.FRAGMENT);
-        shaderControl.loadShader(basePath + "\\shaders\\vertex_shader.glsl", ShaderType.VERTEX);
-        shaderControl.attachShaders();
+    public static void rebindBuffers() {
+        bufferBound = new boolean[bufferBound.length];
     }
 }

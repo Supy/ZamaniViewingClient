@@ -2,6 +2,7 @@ package utils;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import javax.media.opengl.GL2;
 import java.nio.FloatBuffer;
 
 public class NormalsCalculator {
@@ -27,7 +28,7 @@ public class NormalsCalculator {
             Vector3D edge1 = v1.subtract(v3);
             Vector3D edge2 = v2.subtract(v3);
 
-            Vector3D cross = edge1.crossProduct(edge2);
+            Vector3D cross = (FeatureToggle.getFrontFace() == GL2.GL_CCW) ? edge1.crossProduct(edge2) : edge2.crossProduct(edge1);
             double[] normalD = cross.toArray();
             float[] normalF = new float[]{(float) normalD[0], (float) normalD[1], (float) normalD[2]};
 
