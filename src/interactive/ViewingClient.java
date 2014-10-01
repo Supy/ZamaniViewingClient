@@ -1,6 +1,5 @@
 package interactive;
 
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 import hierarchy.BVHBuilder;
 import hierarchy.BVHFileReader;
@@ -9,7 +8,12 @@ import hierarchy.Hierarchy;
 import utils.Stopwatch;
 
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -19,24 +23,36 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ViewingClient {
+public class ViewingClient extends JFrame {
 
     private static FPSAnimator animator;
     private static Frame frame;
 
-    public static void main(String[] args) {
-        setupLogging();
+    private JButton openButton = new JButton("Open file");
 
-        if (args.length != 1) {
-            System.out.println("Please supply the path to the hierarchy information file.");
-            exit();
-        }
+    public ViewingClient() {
+        this.setUndecorated(false);
+        this.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                ViewingClient.exit();
+            }
+        });
+        this.setVisible(true);
+        this.requestFocus();
+        this.setSize(1000, 800);
+        this.setCursor(invisibleCursor());
 
+        openButton.addActionListener(new OpenFileListener());
+        this.add(openButton);
+        this.validate();
+    }
+
+    protected void openFile(String filePath) {
         BVHFileReader fileReader = null;
         Hierarchy hierarchy = null;
 
         try {
-            fileReader = new BVHFileReader(args[0]);
+            fileReader = new BVHFileReader(filePath);
             hierarchy = BVHBuilder.fromString(fileReader.readHierarchyHeader());
             DataStore.setFileReader(fileReader);
         } catch (IOException e) {
@@ -52,24 +68,35 @@ public class ViewingClient {
         canvas.addKeyListener(inputReader);
         canvas.addMouseMotionListener(inputReader);
 
-        frame = new Frame("Zamani Renderer");
-        frame.add(canvas);
-        frame.setSize(1200, 900);
-//        frame.setExtendedState(Frame.MAXIMIZED_BOTH);
-        frame.setUndecorated(false);
-        frame.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                ViewingClient.exit();
-            }
-        });
-        frame.setVisible(true);
-        frame.requestFocus();
-        frame.setCursor(invisibleCursor());
+        this.remove(openButton);
+        this.add(canvas);
+        this.revalidate();
 
         // Repeatedly calls the canvas's display() method.
         animator = new FPSAnimator(canvas, 60);
         animator.start();
         animator.setUpdateFPSFrames(60, System.out);
+    }
+
+    class OpenFileListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser c = new JFileChooser();
+            c.setAcceptAllFileFilterUsed(false);
+            c.setFileFilter(new FileNameExtensionFilter("PHF Files", "phf"));
+
+            // Demonstrate "Open" dialog:
+            int rVal = c.showOpenDialog(ViewingClient.this);
+            if (rVal == JFileChooser.APPROVE_OPTION) {
+                openFile(c.getSelectedFile().getAbsolutePath());
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        setupLogging();
+        new ViewingClient();
     }
 
     public static void exit() {
