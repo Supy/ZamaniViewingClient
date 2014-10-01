@@ -8,7 +8,7 @@ public class FeatureToggle {
     private static boolean drawNormals = false;
     private static int polygonFillMode = GL2.GL_FILL;
     private static int polygonMode = GL2.GL_TRIANGLES;
-    private static int shaderType = GL2.GL_FLAT;
+    private static int shaderType = GL2.GL_SMOOTH;
 
     public static void toggleDrawBoundingVolumes() {
         drawBoundingVolumes = !drawBoundingVolumes;

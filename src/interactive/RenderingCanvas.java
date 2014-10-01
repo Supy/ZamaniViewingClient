@@ -96,6 +96,10 @@ public class RenderingCanvas implements GLEventListener {
             this.hierarchyRenderer.draw(glAutoDrawable);
         }
 
+        int facesRendered = 0;
+        int activeNodes = this.hierarchy.getActiveNodes().size();
+        int visibleNodes = this.hierarchy.getVisibleNodes().size();
+
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
             if (!this.hierarchy.canBeRendered(node)) {
@@ -105,7 +109,6 @@ public class RenderingCanvas implements GLEventListener {
             NodeDataBlock dataBlock = DataStore.getNodeData(node);
 
             if (dataBlock != null) {
-
                 if (!bufferBound[node.getId()]) {
                     Stopwatch.start("total time binding buffer data");
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
@@ -137,6 +140,7 @@ public class RenderingCanvas implements GLEventListener {
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, buffers.get(node.getId() * 2 + 1));
                     gl.glDrawElements(GL2.GL_TRIANGLES, node.getNumFaces() * 3, GL2.GL_UNSIGNED_INT, 0);
                     gl.glBindBuffer(GL2.GL_ELEMENT_ARRAY_BUFFER, 0);
+                    facesRendered += node.getNumFaces();
                 } else {
                     gl.glDrawArrays(GL2.GL_POINTS, 0, dataBlock.getVertexDataBuffer().capacity());
                     gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, 0);
@@ -190,6 +194,10 @@ public class RenderingCanvas implements GLEventListener {
             }
             lastClearTime = System.currentTimeMillis();
         }
+
+        ViewingClient.activeNodesLabel.setText("Active nodes: " + activeNodes);
+        ViewingClient.visibleNodesLabel.setText("Visible nodes: " + visibleNodes);
+        ViewingClient.facesRenderedLabel.setText(String.format("Faces: %,d", facesRendered).replace(",", " "));
 
     }
 
