@@ -30,56 +30,56 @@ public class Hierarchy {
 
         visibleNodes = new HashSet<>();
         Queue<Node> nodesToCheck = new LinkedList<>(activeNodes);
-        Set<Node> nodesChecked = new HashSet<>();
+        Set<Node> unadjustableNodes = new HashSet<>();
 
         while(!nodesToCheck.isEmpty()) {
             Node node = nodesToCheck.poll();
 
-            // Prevents endless expansion-reduction loops.
-            if (!nodesChecked.contains(node)) {
+            node.getCorners().toArray(corners);
+            if (FrustumCuller.isBoxVisible(corners)) {
+                double screenSize = Camera.getProjectedScreenSize(corners);
 
-                node.getCorners().toArray(corners);
-                if (FrustumCuller.isBoxVisible(corners)) {
-                    double screenSize = Camera.getProjectedScreenSize(corners);
-
-                    if (screenSize > 70) {         // Try expand this node if it's not a leaf.
-                        if (node.isLeafNode()) {
-                            visibleNodes.add(node);
-                            activeNodes.add(node);
-                        } else {
+                if (screenSize > 70) {         // Try expand this node if it's not a leaf.
+                    if (node.isLeafNode()) {
+                        visibleNodes.add(node);
+                        activeNodes.add(node);
+                    } else {
+                        if (!unadjustableNodes.contains(node)) {
                             activeNodes.remove(node);
                             visibleNodes.remove(node);
                             nodesToCheck.addAll(node.getChildren());
                             nodeExpanded[node.getId()] = true;
-                        }
-                    } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
-                        visibleNodes.add(node);
-                        activeNodes.add(node);
-                    } else {                        // Try reduce node.
-                        Node parentNode = node.getParent();
-                        if (parentNode != null) {
-                            List<Node> siblings = node.getSiblings();
-                            if (allNodesBelowProjectedSize(siblings, 15)) {
-                                visibleNodes.removeAll(siblings);
-                                activeNodes.removeAll(siblings);
-                                nodesToCheck.removeAll(siblings);
-                                nodesToCheck.add(parentNode);
-                                nodeExpanded[parentNode.getId()] = false;
-                            } else {
-                                // If we can't remove all siblings of this node, then we have to render it until we can.
-                                visibleNodes.add(node);
-                                activeNodes.add(node);
-                            }
-                        } else {
-                            // Always ensure root node is active even if it's reduced completely.
-                            activeNodes.add(node);
+
+                            unadjustableNodes.addAll(node.getChildren());
                         }
                     }
-                } else {
+                } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
+                    visibleNodes.add(node);
                     activeNodes.add(node);
-                }
+                } else {                        // Try reduce node.
+                    Node parentNode = node.getParent();
+                    if (parentNode != null) {
+                        List<Node> siblings = node.getSiblings();
+                        if (!unadjustableNodes.contains(node) && allNodesBelowProjectedSize(siblings, 15)) {
+                            visibleNodes.removeAll(siblings);
+                            activeNodes.removeAll(siblings);
+                            nodesToCheck.removeAll(siblings);
+                            nodesToCheck.add(parentNode);
+                            nodeExpanded[parentNode.getId()] = false;
 
-                nodesChecked.add(node);
+                            unadjustableNodes.add(parentNode);
+                        } else {
+                            // If we can't remove all siblings of this node, then we have to render it until we can.
+                            visibleNodes.add(node);
+                            activeNodes.add(node);
+                        }
+                    } else {
+                        // Always ensure root node is active even if it's reduced completely.
+                        activeNodes.add(node);
+                    }
+                }
+            } else {
+                activeNodes.add(node);
             }
         }
     }
