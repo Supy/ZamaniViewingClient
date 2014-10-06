@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node implements Comparable<Node> {
+
     private int id;
     private int depth;
 

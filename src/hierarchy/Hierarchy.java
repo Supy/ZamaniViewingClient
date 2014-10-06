@@ -17,6 +17,7 @@ public class Hierarchy {
     private HashSet<Node> activeNodes = new HashSet<>();
     private HashSet<Node> visibleNodes = new HashSet<>();
     private boolean[] nodeExpanded;
+    private HashMap<Node, HierarchyAdjustmentInstance> hierarchyAdjustments = new HashMap<>();
 
     public Hierarchy(int numElements) {
         this.nodeList = Arrays.asList(new Node[numElements]);
@@ -30,7 +31,6 @@ public class Hierarchy {
 
         visibleNodes = new HashSet<>();
         Queue<Node> nodesToCheck = new LinkedList<>(activeNodes);
-        Set<Node> unadjustableNodes = new HashSet<>();
 
         while(!nodesToCheck.isEmpty()) {
             Node node = nodesToCheck.poll();
@@ -44,13 +44,18 @@ public class Hierarchy {
                         visibleNodes.add(node);
                         activeNodes.add(node);
                     } else {
-                        if (!unadjustableNodes.contains(node)) {
+                        if (canPerformOperation(node, OP.EXPANSION)) {
                             activeNodes.remove(node);
                             visibleNodes.remove(node);
                             nodesToCheck.addAll(node.getChildren());
                             nodeExpanded[node.getId()] = true;
 
-                            unadjustableNodes.addAll(node.getChildren());
+                            for (Node child : node.getChildren()) {
+                                setNodeAdjustment(child, OP.EXPANSION);
+                            }
+                        } else {
+                            visibleNodes.add(node);
+                            activeNodes.add(node);
                         }
                     }
                 } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
@@ -60,14 +65,15 @@ public class Hierarchy {
                     Node parentNode = node.getParent();
                     if (parentNode != null) {
                         List<Node> siblings = node.getSiblings();
-                        if (!unadjustableNodes.contains(node) && allNodesBelowProjectedSize(siblings, 15)) {
+
+                        if (canPerformOperation(node, OP.REDUCTION) && allNodesBelowProjectedSize(siblings, 15)) {
                             visibleNodes.removeAll(siblings);
                             activeNodes.removeAll(siblings);
                             nodesToCheck.removeAll(siblings);
                             nodesToCheck.add(parentNode);
                             nodeExpanded[parentNode.getId()] = false;
 
-                            unadjustableNodes.add(parentNode);
+                            setNodeAdjustment(parentNode, OP.REDUCTION);
                         } else {
                             // If we can't remove all siblings of this node, then we have to render it until we can.
                             visibleNodes.add(node);
@@ -75,6 +81,7 @@ public class Hierarchy {
                         }
                     } else {
                         // Always ensure root node is active even if it's reduced completely.
+                        visibleNodes.add(node);
                         activeNodes.add(node);
                     }
                 }
@@ -96,6 +103,29 @@ public class Hierarchy {
         }
 
         return true;
+    }
+
+    private boolean canPerformOperation(Node node, OP operation) {
+        if (!this.hierarchyAdjustments.containsKey(node)) {
+            this.hierarchyAdjustments.put(node, new HierarchyAdjustmentInstance());
+        }
+
+        HierarchyAdjustmentInstance adjustmentInstance = this.hierarchyAdjustments.get(node);
+
+        if (adjustmentInstance.getLastOperation() == operation || (!adjustmentInstance.isSameOperationPosition(Camera.getPosition()) && (System.currentTimeMillis() - adjustmentInstance.getLastOperationTime()) >= 500)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void setNodeAdjustment(Node node, OP operation) {
+        if (!this.hierarchyAdjustments.containsKey(node)) {
+            this.hierarchyAdjustments.put(node, new HierarchyAdjustmentInstance());
+        }
+
+        HierarchyAdjustmentInstance adjustmentInstance = this.hierarchyAdjustments.get(node);
+        adjustmentInstance.setLastOperation(operation, Camera.getPosition());
     }
 
     public int getNumNodes() {
