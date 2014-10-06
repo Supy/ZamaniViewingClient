@@ -82,6 +82,10 @@ public class InputReader implements KeyListener, MouseMotionListener {
             DataStore.invalidateCache();
             RenderingCanvas.rebindBuffers();
         }
+
+        if (e.getKeyChar() == 'l') {
+            FeatureToggle.toggleUseLighting();
+        }
     }
 
     @Override

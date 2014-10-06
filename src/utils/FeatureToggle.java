@@ -10,6 +10,7 @@ public class FeatureToggle {
     private static int polygonMode = GL2.GL_TRIANGLES;
     private static int shaderType = GL2.GL_SMOOTH;
     private static int frontFace = GL2.GL_CCW;
+    private static boolean useLighting = true;
 
     public static void toggleDrawBoundingVolumes() {
         drawBoundingVolumes = !drawBoundingVolumes;
@@ -57,5 +58,13 @@ public class FeatureToggle {
 
     public static int getFrontFace() {
         return frontFace;
+    }
+
+    public static void toggleUseLighting() {
+        useLighting = !useLighting;
+    }
+
+    public static boolean shouldUseLighting() {
+        return useLighting;
     }
 }

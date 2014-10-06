@@ -70,6 +70,11 @@ public class RenderingCanvas implements GLEventListener {
         gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, FeatureToggle.getPolygonFillMode());
         gl.glShadeModel(FeatureToggle.getShaderType());
         gl.glFrontFace(FeatureToggle.getFrontFace());
+        if (FeatureToggle.shouldUseLighting()) {
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
+        } else {
+            gl.glDisableClientState(GL2.GL_COLOR_ARRAY);
+        }
 
         InputReader.processInput();
         Camera.update(gl);
@@ -85,6 +90,8 @@ public class RenderingCanvas implements GLEventListener {
         if (FeatureToggle.shouldDrawBoundingVolumes()) {
             this.hierarchyRenderer.draw(glAutoDrawable);
         }
+
+        gl.glColor3f(0.5f, 0.5f, 0.5f);
 
         int facesRendered = 0;
         int activeNodes = this.hierarchy.getActiveNodes().size();
@@ -221,12 +228,10 @@ public class RenderingCanvas implements GLEventListener {
         float[] worldAmbience = {0.33f, 0.33f, 0.33f, 1f};
         gl.glLightModelfv(GL2.GL_LIGHT_MODEL_AMBIENT, worldAmbience, 0);
 
-        float[] lightPosition = {10000, 10000, 10000, 1};
-        float[] diffuseColor = {1.0f, 1.0f, 1.0f, 1.0f};
-        float[] specularColor = {1.0f, 1.0f, 1.0f, 1.0f};
+        float[] diffuseColor = {0.7f, 0.7f, 0.7f, 1.0f};
+        float[] specularColor = {0.9f, 0.9f, 0.9f, 1.0f};
 
         gl.glEnable(GL2.GL_LIGHT0);
-        gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, lightPosition, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_DIFFUSE, diffuseColor, 0);
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_SPECULAR, specularColor, 0);
 

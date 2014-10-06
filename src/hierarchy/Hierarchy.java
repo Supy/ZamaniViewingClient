@@ -30,49 +30,56 @@ public class Hierarchy {
 
         visibleNodes = new HashSet<>();
         Queue<Node> nodesToCheck = new LinkedList<>(activeNodes);
+        Set<Node> nodesChecked = new HashSet<>();
 
         while(!nodesToCheck.isEmpty()) {
             Node node = nodesToCheck.poll();
 
-            node.getCorners().toArray(corners);
-            if (FrustumCuller.isBoxVisible(corners)) {
-                double screenSize = Camera.getProjectedScreenSize(corners);
+            // Prevents endless expansion-reduction loops.
+            if (!nodesChecked.contains(node)) {
 
-                if (screenSize > 70) {         // Try expand this node if it's not a leaf.
-                    if (node.isLeafNode()) {
-                        visibleNodes.add(node);
-                        activeNodes.add(node);
-                    } else {
-                        activeNodes.remove(node);
-                        visibleNodes.remove(node);
-                        nodesToCheck.addAll(node.getChildren());
-                        nodeExpanded[node.getId()] = true;
-                    }
-                } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
-                    visibleNodes.add(node);
-                    activeNodes.add(node);
-                } else {                        // Try reduce node.
-                    Node parentNode = node.getParent();
-                    if (parentNode != null) {
-                        List<Node> siblings = node.getSiblings();
-                        if (allNodesBelowProjectedSize(siblings, 15)) {
-                            visibleNodes.removeAll(siblings);
-                            activeNodes.removeAll(siblings);
-                            nodesToCheck.removeAll(siblings);
-                            nodesToCheck.add(parentNode);
-                            nodeExpanded[parentNode.getId()] = false;
-                        } else {
-                            // If we can't remove all siblings of this node, then we have to render it until we can.
+                node.getCorners().toArray(corners);
+                if (FrustumCuller.isBoxVisible(corners)) {
+                    double screenSize = Camera.getProjectedScreenSize(corners);
+
+                    if (screenSize > 70) {         // Try expand this node if it's not a leaf.
+                        if (node.isLeafNode()) {
                             visibleNodes.add(node);
                             activeNodes.add(node);
+                        } else {
+                            activeNodes.remove(node);
+                            visibleNodes.remove(node);
+                            nodesToCheck.addAll(node.getChildren());
+                            nodeExpanded[node.getId()] = true;
                         }
-                    } else {
-                        // Always ensure root node is active even if it's reduced completely.
+                    } else if (screenSize > 15) { // Doesn't require expansion, but also doesn't have to be reduced.
+                        visibleNodes.add(node);
                         activeNodes.add(node);
+                    } else {                        // Try reduce node.
+                        Node parentNode = node.getParent();
+                        if (parentNode != null) {
+                            List<Node> siblings = node.getSiblings();
+                            if (allNodesBelowProjectedSize(siblings, 15)) {
+                                visibleNodes.removeAll(siblings);
+                                activeNodes.removeAll(siblings);
+                                nodesToCheck.removeAll(siblings);
+                                nodesToCheck.add(parentNode);
+                                nodeExpanded[parentNode.getId()] = false;
+                            } else {
+                                // If we can't remove all siblings of this node, then we have to render it until we can.
+                                visibleNodes.add(node);
+                                activeNodes.add(node);
+                            }
+                        } else {
+                            // Always ensure root node is active even if it's reduced completely.
+                            activeNodes.add(node);
+                        }
                     }
+                } else {
+                    activeNodes.add(node);
                 }
-            } else {
-                activeNodes.add(node);
+
+                nodesChecked.add(node);
             }
         }
     }
