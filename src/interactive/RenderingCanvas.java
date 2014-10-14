@@ -80,9 +80,8 @@ public class RenderingCanvas implements GLEventListener {
         Camera.update(gl);
         setLightBehindCamera(gl);
 
-        this.hierarchy.updateNodeVisibility();
-
         if (System.currentTimeMillis() - lastLoadTime >= 50) {
+            this.hierarchy.updateNodeVisibility();
             DataStore.loadAllNodeData(this.hierarchy.getExtendedNodeSet(this.hierarchy.getActiveNodes(), true, true));
             lastLoadTime = System.currentTimeMillis();
         }
@@ -124,9 +123,9 @@ public class RenderingCanvas implements GLEventListener {
 
                 gl.glBindBuffer(GL2.GL_ARRAY_BUFFER, buffers.get(node.getId() * 2));
                 if (Hierarchy.hasColour) {
-                    gl.glVertexPointer(3, GL2.GL_FLOAT, 28, 0);
-                    gl.glNormalPointer(GL2.GL_FLOAT, 28, 12);
-                    gl.glColorPointer(4, GL2.GL_UNSIGNED_BYTE, 28, 24);
+                    gl.glVertexPointer(3, GL2.GL_FLOAT, 27, 0);
+                    gl.glNormalPointer(GL2.GL_FLOAT, 27, 12);
+                    gl.glColorPointer(3, GL2.GL_UNSIGNED_BYTE, 27, 24);
                 } else {
                     gl.glVertexPointer(3, GL2.GL_FLOAT, 24, 0);
                     gl.glNormalPointer(GL2.GL_FLOAT, 24, 12);
@@ -151,7 +150,7 @@ public class RenderingCanvas implements GLEventListener {
                     gl.glBegin(GL2.GL_LINES);
                     gl.glColor3f(0.2f, 0.7f, 0);
 
-                    final int stride = (Hierarchy.hasColour) ? 28 : 24;
+                    final int stride = (Hierarchy.hasColour) ? 27 : 24;
                     for (int i = 0; i < dataBlock.getVertexDataBuffer().capacity(); i += stride) {
                         gl.glVertex3f(
                                 buffer.getFloat(i),

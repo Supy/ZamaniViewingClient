@@ -57,8 +57,8 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
                 byte[] colours = new byte[0];
                 if (Hierarchy.hasColour) {
                     // COLOURS
-                    // * 4 because RGBA
-                    colours = new byte[node.getNumVertices() * 4];
+                    // * 3 because RGB
+                    colours = new byte[node.getNumVertices() * 3];
                     buffer.get(colours);
                 }
 

@@ -20,7 +20,7 @@ public class DataInterleaver {
         ByteBuffer positionNormalColourBuffer;
 
         if (colourBuffer != null) {
-            final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT + 4 * 1;
+            final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT + 3 * 1;
             positionNormalColourBuffer = ByteBuffer.allocateDirect(numVertices * bytesPerVertex);
             positionNormalColourBuffer.order(ByteOrder.nativeOrder());
 
@@ -36,11 +36,10 @@ public class DataInterleaver {
                 positionNormalColourBuffer.putFloat(i + 16, normalBuffer.get(base + 1));
                 positionNormalColourBuffer.putFloat(i + 20, normalBuffer.get(base + 2));
 
-                base = index * 4;
+                base = index * 3;
                 positionNormalColourBuffer.put(i + 24, colourBuffer.get(base));
                 positionNormalColourBuffer.put(i + 25, colourBuffer.get(base + 1));
                 positionNormalColourBuffer.put(i + 26, colourBuffer.get(base + 2));
-                positionNormalColourBuffer.put(i + 27, colourBuffer.get(base + 3));
             }
         } else {
             final int bytesPerVertex = 3 * ByteSize.FLOAT + 3 * ByteSize.FLOAT ;
