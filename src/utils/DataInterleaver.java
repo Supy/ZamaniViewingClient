@@ -11,7 +11,7 @@ public class DataInterleaver {
 
     public static ByteBuffer mergePositionNormalColour(final FloatBuffer positionBuffer, final FloatBuffer normalBuffer, final ByteBuffer colourBuffer) {
         // Sanity check.
-        if (positionBuffer.capacity() != normalBuffer.capacity() || (colourBuffer != null && positionBuffer.capacity() != (colourBuffer.capacity() / 4 * 3))) {
+        if (positionBuffer.capacity() != normalBuffer.capacity() || (colourBuffer != null && positionBuffer.capacity() != colourBuffer.capacity())) {
             throw new IllegalArgumentException("Buffers must be the same size.");
         }
 
