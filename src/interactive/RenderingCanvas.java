@@ -199,7 +199,7 @@ public class RenderingCanvas implements GLEventListener {
 
     private void setLightBehindCamera(GL2 gl) {
         Vector3D position = Camera.getPosition().subtract(Camera.getLookAt());
-        float[] positionF = new float[] {(float) position.getX(), (float) position.getY(), (float) position.getZ()};
+        float[] positionF = new float[] {(float) position.getX(), (float) position.getY() + 2, (float) position.getZ()};
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, positionF, 0);
     }
 
@@ -214,6 +214,7 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setupCamera() {
+        Camera.setStaticCamera(false);
         Camera.setPosition(new Vector3D(1000, 1000, 1000));
         Camera.setLookAt(new Vector3D(0, 0, 0));
         Camera.setClipping(10,3000);

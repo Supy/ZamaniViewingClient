@@ -12,6 +12,16 @@ public class InputReader implements KeyListener, MouseMotionListener {
     // Stores the list of currently pressed keys.
     private static final HashMap<Integer, Boolean> keysDown = new HashMap<>();
 
+    private static Robot robot;
+
+    static {
+        try {
+            robot = new Robot();
+        } catch (Exception e) {
+            System.err.println("System does not support low-level input for automated mouse movement.");
+        }
+    }
+
     private static int mouseCenterX;
     private static int mouseCenterY;
 
@@ -86,6 +96,10 @@ public class InputReader implements KeyListener, MouseMotionListener {
         if (e.getKeyChar() == 'l') {
             FeatureToggle.toggleUseLighting();
         }
+
+        if (e.getKeyChar() == 'm') {
+            Camera.toggleStaticCamera();
+        }
     }
 
     @Override
@@ -105,12 +119,11 @@ public class InputReader implements KeyListener, MouseMotionListener {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        Camera.move2D(mouseCenterX - e.getXOnScreen(), mouseCenterY - e.getYOnScreen());
+        if (robot != null) {
+            Camera.move2D(mouseCenterX - e.getXOnScreen(), mouseCenterY - e.getYOnScreen());
 
-        // Move mouse back to center of window.
-        try {
-            Robot robot = new Robot();
+            // Move mouse back to center of window.
             robot.mouseMove(mouseCenterX, mouseCenterY);
-        } catch (Exception ignored) { }
+        }
     }
 }

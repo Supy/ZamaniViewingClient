@@ -42,6 +42,8 @@ public class Camera {
 
     private static Vector3D cameraUp;
 
+    private static boolean staticCamera = false;
+
     private final static GLU glu = new GLU();
 
     private final static double[] projectionMatrix = new double[16];
@@ -138,25 +140,27 @@ public class Camera {
     }
 
     public static void move(CameraDirection dir) {
-        switch (dir) {
-            case UP:
-                cameraPositionDelta = cameraPositionDelta.add(cameraUp.scalarMultiply(cameraScale));
-                break;
-            case DOWN:
-                cameraPositionDelta = cameraPositionDelta.subtract(cameraUp.scalarMultiply(cameraScale));
-                break;
-            case LEFT:
-                cameraPositionDelta = cameraPositionDelta.subtract(cameraDirection.crossProduct(cameraUp).scalarMultiply(cameraScale));
-                break;
-            case RIGHT:
-                cameraPositionDelta = cameraPositionDelta.add(cameraDirection.crossProduct(cameraUp).scalarMultiply(cameraScale));
-                break;
-            case FORWARD:
-                cameraPositionDelta = cameraPositionDelta.add(cameraDirection.scalarMultiply(cameraScale));
-                break;
-            case BACK:
-                cameraPositionDelta = cameraPositionDelta.subtract(cameraDirection.scalarMultiply(cameraScale));
-                break;
+        if (!staticCamera) {
+            switch (dir) {
+                case UP:
+                    cameraPositionDelta = cameraPositionDelta.add(cameraUp.scalarMultiply(cameraScale));
+                    break;
+                case DOWN:
+                    cameraPositionDelta = cameraPositionDelta.subtract(cameraUp.scalarMultiply(cameraScale));
+                    break;
+                case LEFT:
+                    cameraPositionDelta = cameraPositionDelta.subtract(cameraDirection.crossProduct(cameraUp).scalarMultiply(cameraScale));
+                    break;
+                case RIGHT:
+                    cameraPositionDelta = cameraPositionDelta.add(cameraDirection.crossProduct(cameraUp).scalarMultiply(cameraScale));
+                    break;
+                case FORWARD:
+                    cameraPositionDelta = cameraPositionDelta.add(cameraDirection.scalarMultiply(cameraScale));
+                    break;
+                case BACK:
+                    cameraPositionDelta = cameraPositionDelta.subtract(cameraDirection.scalarMultiply(cameraScale));
+                    break;
+            }
         }
     }
 
@@ -202,8 +206,10 @@ public class Camera {
     }
 
     public static void move2D(int deltaX, int deltaY) {
-        changeHeading(0.0005f * deltaX);
-        changePitch(0.0005f * deltaY);
+        if (!staticCamera) {
+            changeHeading(0.0005f * deltaX);
+            changePitch(0.0005f * deltaY);
+        }
     }
 
     public static void calculateProjectionMatrix(GL2 gl) {
@@ -246,5 +252,13 @@ public class Camera {
         }
 
         return Math.abs((maxX - minX)) * Math.abs((maxY - minY)) / (windowWidth * windowHeight) * 100;
+    }
+
+    public static void setStaticCamera(boolean isStatic) {
+        staticCamera = isStatic;
+    }
+
+    public static void toggleStaticCamera() {
+        staticCamera = !staticCamera;
     }
 }
