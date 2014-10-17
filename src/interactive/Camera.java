@@ -134,6 +134,7 @@ public class Camera {
         windowHeight = height;
         aspect = (double) width / (double) height;
     }
+
     public static void setClipping(double nearClipDistance, double farClipDistance) {
         nearClip = nearClipDistance;
         farClip = farClipDistance;
@@ -230,10 +231,6 @@ public class Camera {
         return modelViewMatrix;
     }
 
-    public static int[] getViewportBoundaries() {
-        return viewportBoundaries;
-    }
-
     public static double getProjectedScreenSize(Vector3D[] corners) {
         double  minX = Double.MAX_VALUE, maxX = 0,
                 minY = Double.MAX_VALUE, maxY = 0;
@@ -260,5 +257,9 @@ public class Camera {
 
     public static void toggleStaticCamera() {
         staticCamera = !staticCamera;
+    }
+
+    public static void adjustCameraScale(float increment) {
+        cameraScale += increment;
     }
 }

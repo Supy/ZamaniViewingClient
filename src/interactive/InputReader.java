@@ -7,7 +7,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
 
-public class InputReader implements KeyListener, MouseMotionListener {
+public class InputReader implements KeyListener, MouseMotionListener, MouseWheelListener {
 
     // Stores the list of currently pressed keys.
     private static final HashMap<Integer, Boolean> keysDown = new HashMap<>();
@@ -125,5 +125,10 @@ public class InputReader implements KeyListener, MouseMotionListener {
             // Move mouse back to center of window.
             robot.mouseMove(mouseCenterX, mouseCenterY);
         }
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        Camera.adjustCameraScale(e.getWheelRotation() * 0.5f);
     }
 }

@@ -100,6 +100,7 @@ public class ViewingClient extends JFrame {
             canvas.addGLEventListener(renderingCanvas);
             canvas.addKeyListener(inputReader);
             canvas.addMouseMotionListener(inputReader);
+            canvas.addMouseWheelListener(inputReader);
 
             this.add(canvas, BorderLayout.CENTER);
             this.setTitle("Zamani Viewing Client - " + filePath);
