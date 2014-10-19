@@ -11,7 +11,6 @@ public class NormalsCalculator {
             throw new RuntimeException("number of vertex positions must be a multiple of 3");
         }
 
-        int[] contributions = new int[positions.length / 3];
         float[] normals = new float[positions.length];
 
         for(int i=0; i < faces.length; i+= 3) {
@@ -50,18 +49,9 @@ public class NormalsCalculator {
             normals[p3Index] += normalF[0];
             normals[p3Index + 1] += normalF[1];
             normals[p3Index + 2] += normalF[2];
-
-            contributions[faces[i]]++;
-            contributions[faces[i + 1]]++;
-            contributions[faces[i + 2]]++;
         }
 
         for(int i=0; i < normals.length; i+=3){
-            float contribution = contributions[1];
-            normals[i] /= contribution;
-            normals[i+1] /= contribution;
-            normals[i+2] /= contribution;
-
             // Normalize the average.
             float length = (float) Math.sqrt(normals[i] * normals[i] + normals[i+1] * normals[i+1] + normals[i+2] * normals[i+2]);
             normals[i] /= length;

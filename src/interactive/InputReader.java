@@ -58,6 +58,22 @@ public class InputReader implements KeyListener, MouseMotionListener, MouseWheel
         if (isKeyDown(KeyEvent.VK_ESCAPE)) {
             ViewingClient.exit();
         }
+
+        if (isKeyDown(KeyEvent.VK_NUMPAD8)) {
+            Camera.move2D(0,16);
+        }
+
+        if (isKeyDown(KeyEvent.VK_NUMPAD2)) {
+            Camera.move2D(0,-16);
+        }
+
+        if (isKeyDown(KeyEvent.VK_NUMPAD4)) {
+            Camera.move2D(-16, 0);
+        }
+
+        if (isKeyDown(KeyEvent.VK_NUMPAD6)) {
+            Camera.move2D(16, 0);
+        }
     }
 
     private static boolean isKeyDown(final int e) {

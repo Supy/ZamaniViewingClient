@@ -95,6 +95,7 @@ public class RenderingCanvas implements GLEventListener {
         int facesRendered = 0;
         int activeNodes = this.hierarchy.getActiveNodes().size();
         int visibleNodes = this.hierarchy.getVisibleNodes().size();
+        int[] hlodRendered = new int[6];
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
@@ -166,6 +167,8 @@ public class RenderingCanvas implements GLEventListener {
                     }
                     gl.glEnd();
                 }
+
+                hlodRendered[node.getDepth()]++;
             }
         }
 
@@ -195,6 +198,17 @@ public class RenderingCanvas implements GLEventListener {
         ViewingClient.visibleNodesLabel.setText("Visible nodes: " + visibleNodes);
         ViewingClient.facesRenderedLabel.setText(String.format("Faces: %,d", facesRendered).replace(",", " "));
 
+        // Get current size of heap in bytes
+        long heapSize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+        StatsRecorder.record("activeNodes", activeNodes);
+        StatsRecorder.record("visibleNodes", visibleNodes);
+        StatsRecorder.record("heapUsage", heapSize);
+        StatsRecorder.record("polygonsVisible", facesRendered);
+
+        for (int i=0; i < hlodRendered.length; i++) {
+            StatsRecorder.record("hlod-" + (i+1), hlodRendered[i]);
+        }
     }
 
     private void setLightBehindCamera(GL2 gl) {
@@ -214,9 +228,9 @@ public class RenderingCanvas implements GLEventListener {
     }
 
     private void setupCamera() {
-        Camera.setStaticCamera(false);
-        Camera.setPosition(new Vector3D(1000, 1000, 1000));
-        Camera.setLookAt(new Vector3D(0, 0, 0));
+        Camera.setStaticCamera(true);
+        Camera.setPosition(new Vector3D(227.3742395702, 12.3614183564, 411.2125194329));
+        Camera.setLookAt(new Vector3D(0, 14.3614183564, 0));
         Camera.setClipping(10,3000);
         Camera.setFOV(45);
     }

@@ -5,6 +5,7 @@ import hierarchy.BVHBuilder;
 import hierarchy.BVHFileReader;
 import data.DataStore;
 import hierarchy.Hierarchy;
+import utils.StatsRecorder;
 import utils.Stopwatch;
 
 import javax.media.opengl.awt.GLCanvas;
@@ -168,6 +169,8 @@ public class ViewingClient extends JFrame {
         Stopwatch.printTime("total time calculating normals <thread 2>");
         Stopwatch.printTime("total time calculating normals <thread 3>");
         Stopwatch.printTime("total time binding buffer data");
+
+        StatsRecorder.printStats();
         System.exit(0);
     }
 
