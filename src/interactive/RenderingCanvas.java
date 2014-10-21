@@ -23,6 +23,8 @@ public class RenderingCanvas implements GLEventListener {
 
     private long lastLoadTime, lastClearTime;
 
+    private double totalDataBuffered = 0;
+
     public RenderingCanvas(Hierarchy hierarchy) {
         if (hierarchy == null) {
             throw new IllegalArgumentException("Must be supplied with non-null hierarchy.");
@@ -118,6 +120,7 @@ public class RenderingCanvas implements GLEventListener {
 
                     Stopwatch.stop("total time binding buffer data");
                     bufferBound[node.getId()] = true;
+                    totalDataBuffered += dataBlock.getVertexDataBuffer().capacity() + (dataBlock.getIndexBuffer().capacity() * 4);
                 }
 
                 gl.glEnable(GL2.GL_LIGHTING);
@@ -198,16 +201,19 @@ public class RenderingCanvas implements GLEventListener {
         ViewingClient.visibleNodesLabel.setText("Visible nodes: " + visibleNodes);
         ViewingClient.facesRenderedLabel.setText(String.format("Faces: %,d", facesRendered).replace(",", " "));
 
-        // Get current size of heap in bytes
-        long heapSize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        if (FeatureToggle.shouldRecord()) {
+            // Get current size of heap in bytes
+            long heapSize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 
-        StatsRecorder.record("activeNodes", activeNodes);
-        StatsRecorder.record("visibleNodes", visibleNodes);
-        StatsRecorder.record("heapUsage", heapSize);
-        StatsRecorder.record("polygonsVisible", facesRendered);
+            StatsRecorder.record("activeNodes", activeNodes);
+            StatsRecorder.record("visibleNodes", visibleNodes);
+            StatsRecorder.record("heapUsage", heapSize);
+            StatsRecorder.record("polygonsVisible", facesRendered);
+            StatsRecorder.record("totalDataBuffered", totalDataBuffered);
 
-        for (int i=0; i < hlodRendered.length; i++) {
-            StatsRecorder.record("hlod-" + (i+1), hlodRendered[i]);
+            for (int i = 0; i < hlodRendered.length; i++) {
+                StatsRecorder.record("hlod-" + (i + 1), hlodRendered[i]);
+            }
         }
     }
 

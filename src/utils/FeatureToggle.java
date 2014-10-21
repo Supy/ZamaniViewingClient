@@ -11,6 +11,7 @@ public class FeatureToggle {
     private static int shaderType = GL2.GL_SMOOTH;
     private static int frontFace = GL2.GL_CCW;
     private static boolean useLighting = true;
+    private static boolean record = false;
 
     public static void toggleDrawBoundingVolumes() {
         drawBoundingVolumes = !drawBoundingVolumes;
@@ -66,5 +67,13 @@ public class FeatureToggle {
 
     public static boolean shouldUseLighting() {
         return useLighting;
+    }
+
+    public static void toggleRecord() {
+        record = !record;
+    }
+
+    public static boolean shouldRecord() {
+        return record;
     }
 }

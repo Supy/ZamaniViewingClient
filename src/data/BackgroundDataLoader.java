@@ -28,7 +28,7 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
                 Stopwatch.start("total time loading node data");
                 loadNodeData(node);
                 Stopwatch.stop("total time loading node data");
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
 
             }
         }

@@ -60,19 +60,19 @@ public class InputReader implements KeyListener, MouseMotionListener, MouseWheel
         }
 
         if (isKeyDown(KeyEvent.VK_NUMPAD8)) {
-            Camera.move2D(0,16);
+            Camera.move2D(0,22);
         }
 
         if (isKeyDown(KeyEvent.VK_NUMPAD2)) {
-            Camera.move2D(0,-16);
+            Camera.move2D(0,-22);
         }
 
         if (isKeyDown(KeyEvent.VK_NUMPAD4)) {
-            Camera.move2D(-16, 0);
+            Camera.move2D(-22, 0);
         }
 
         if (isKeyDown(KeyEvent.VK_NUMPAD6)) {
-            Camera.move2D(16, 0);
+            Camera.move2D(22, 0);
         }
     }
 
@@ -115,6 +115,10 @@ public class InputReader implements KeyListener, MouseMotionListener, MouseWheel
 
         if (e.getKeyChar() == 'm') {
             Camera.toggleStaticCamera();
+        }
+
+        if (e.getKeyChar() == 'r') {
+            FeatureToggle.toggleRecord();
         }
     }
 

@@ -13,7 +13,7 @@ public class Node implements Comparable<Node> {
     private int depth;
 
     // Data information
-    private int dataBlockOffset;
+    private long dataBlockOffset;
     private int dataBlockLength;
     private int numVertices;
     private int numFaces;
@@ -52,11 +52,11 @@ public class Node implements Comparable<Node> {
         return this.depth;
     }
 
-    public int getDataBlockOffset() {
+    public long getDataBlockOffset() {
         return dataBlockOffset;
     }
 
-    private void setDataBlockOffset(int dataBlockOffset) {
+    private void setDataBlockOffset(long dataBlockOffset) {
         this.dataBlockOffset = dataBlockOffset;
     }
 
@@ -154,7 +154,7 @@ public class Node implements Comparable<Node> {
         node.setId(jo.getInt("id"));
         node.setDepth(jo.getInt("depth"));
         node.setParentId(jo.optInt("parent_id", -1));
-        node.setDataBlockOffset(jo.getInt("block_offset"));
+        node.setDataBlockOffset(jo.getLong("block_offset"));
         node.setDataBlockLength(jo.getInt("block_length"));
         node.setNumVertices(jo.getInt("num_vertices"));
         node.setNumFaces(jo.getInt("num_faces"));
