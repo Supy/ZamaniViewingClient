@@ -3,7 +3,6 @@ package utils;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import javax.media.opengl.GL2;
-import java.nio.FloatBuffer;
 
 public class NormalsCalculator {
     public static float[] calculateFrom(float[] positions, int[] faces) {

@@ -22,10 +22,6 @@ public class Stopwatch {
         }
     }
 
-    public static void clear(String key) {
-        durations.remove(key);
-    }
-
     public static long getTime(String key) {
         return durations.get(key);
     }
@@ -33,13 +29,6 @@ public class Stopwatch {
     public static void stopAndPrint(String key) {
         stop(key);
         printTime(key);
-    }
-
-    public static void stopAndPrintGtZero(String key) {
-        stop(key);
-        if (durations.get(key) > 0) {
-            printTime(key);
-        }
     }
 
     public static void printTime(String key) {

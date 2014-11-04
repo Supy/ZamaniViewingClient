@@ -41,10 +41,10 @@ public class FrustumCuller {
         mb32 = mb[14];  mb33 = mb[15];
 
         for (int i = 0; i < 4; i++) {
-            mai0 = ma[i*4+0];  mai1 = ma[i*4+1];
+            mai0 = ma[i*4];  mai1 = ma[i*4+1];
             mai2 = ma[i*4+2];  mai3 = ma[i*4+3];
 
-            result[i*4+0] = mai0 * mb00 + mai1 * mb10 + mai2 * mb20 + mai3 * mb30;
+            result[i*4] = mai0 * mb00 + mai1 * mb10 + mai2 * mb20 + mai3 * mb30;
             result[i*4+1] = mai0 * mb01 + mai1 * mb11 + mai2 * mb21 + mai3 * mb31;
             result[i*4+2] = mai0 * mb02 + mai1 * mb12 + mai2 * mb22 + mai3 * mb32;
             result[i*4+3] = mai0 * mb03 + mai1 * mb13 + mai2 * mb23 + mai3 * mb33;

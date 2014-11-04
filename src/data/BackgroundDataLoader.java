@@ -4,7 +4,6 @@ import com.sun.istack.internal.logging.Logger;
 import hierarchy.Hierarchy;
 import hierarchy.Node;
 import hierarchy.NodeDataBlock;
-import ply.PLYReader;
 import utils.ByteSize;
 import utils.Stopwatch;
 
