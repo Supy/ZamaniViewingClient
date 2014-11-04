@@ -5,6 +5,7 @@ import hierarchy.BVHBuilder;
 import hierarchy.BVHFileReader;
 import data.DataStore;
 import hierarchy.Hierarchy;
+import utils.FeatureToggle;
 import utils.StatsRecorder;
 import utils.Stopwatch;
 
@@ -170,7 +171,9 @@ public class ViewingClient extends JFrame {
         Stopwatch.printTime("total time calculating normals <thread 3>");
         Stopwatch.printTime("total time binding buffer data");
 
-        StatsRecorder.printStats();
+        if (FeatureToggle.shouldRecord()) {
+            StatsRecorder.printStats();
+        }
         System.exit(0);
     }
 

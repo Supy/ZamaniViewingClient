@@ -46,8 +46,6 @@ public class DataStore {
     }
 
     public static void loadAllNodeData(LinkedHashSet<Node> nodeList) {
-        //Stopwatch.start("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
-
         loadQueue.clear();
         // Sort list to make more sequential reading.
         for (Node node : nodeList) {
@@ -55,8 +53,6 @@ public class DataStore {
                 loadQueue.offer(node);
             }
         }
-
-        //Stopwatch.stopAndPrintGtZero("dataLoader.loadAllNodeData <" + nodeList.size() + " nodes>");
     }
 
     public static final NodeDataBlock getNodeData(Node node) {

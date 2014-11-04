@@ -38,8 +38,6 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
         // Don't need to load node data if we still have it in memory
         if (!nodeData.containsKey(node)) {
             try {
-                //log.log(Level.INFO, "Loading data for node " + node.getId() + ". Offset: " + node.getDataBlockOffset() + " Length: " + node.getDataBlockLength());
-
                 ByteBuffer buffer = fileReader.readBlock(baseDataOffset + node.getDataBlockOffset(), node.getDataBlockLength());
                 buffer.order(ByteOrder.LITTLE_ENDIAN);
 
@@ -77,8 +75,6 @@ public class BackgroundDataLoader extends DataStore implements Runnable {
                 }
 
                 processingQueue.put(nodeDataBlock);
-
-                //log.log(Level.INFO, "Loaded data for node " + node.getId());
             } catch (Exception e) {
                 log.log(Level.WARNING, "Failed to data block for node " + node.getId(), e);
             }

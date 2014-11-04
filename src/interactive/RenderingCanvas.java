@@ -235,8 +235,8 @@ public class RenderingCanvas implements GLEventListener {
 
     private void setupCamera() {
         Camera.setStaticCamera(true);
-        Camera.setPosition(new Vector3D(227.3742395702, 12.3614183564, 411.2125194329));
-        Camera.setLookAt(new Vector3D(0, 14.3614183564, 0));
+        Camera.setPosition(new Vector3D(227, 12.5, 410));
+        Camera.setLookAt(new Vector3D(0, 14.5, 0));
         Camera.setClipping(10,3000);
         Camera.setFOV(45);
     }
