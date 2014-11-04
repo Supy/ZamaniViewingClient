@@ -97,7 +97,7 @@ public class RenderingCanvas implements GLEventListener {
         int facesRendered = 0;
         int activeNodes = this.hierarchy.getActiveNodes().size();
         int visibleNodes = this.hierarchy.getVisibleNodes().size();
-        int[] hlodRendered = new int[6];
+        int[] hlodRendered = new int[Hierarchy.maxDepth];
 
         for (Node node : this.hierarchy.getVisibleNodes()) {
 
@@ -219,7 +219,7 @@ public class RenderingCanvas implements GLEventListener {
 
     private void setLightBehindCamera(GL2 gl) {
         Vector3D position = Camera.getPosition().subtract(Camera.getLookAt());
-        float[] positionF = new float[] {(float) position.getX(), (float) position.getY() + 2, (float) position.getZ()};
+        float[] positionF = new float[]{(float) position.getX(), (float) position.getY() + 3, (float) position.getZ()};
         gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, positionF, 0);
     }
 

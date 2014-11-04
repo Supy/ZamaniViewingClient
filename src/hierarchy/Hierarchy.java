@@ -11,7 +11,7 @@ import java.util.*;
 public class Hierarchy {
 
     public static boolean hasColour = true;
-    public static int maxDepth = 0;
+    public static int maxDepth = 10;
 
     private List<Node> nodeList;
     private HashSet<Node> activeNodes = new HashSet<>();
